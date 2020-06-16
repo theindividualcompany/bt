@@ -1,0 +1,19 @@
+{
+  "name": "core",
+  "version": "0.0.0",
+  "description": "> TODO: description",
+  "author": "femyeda <femiao@users.noreply.github.com >",
+  "homepage": "",
+  "license": "ISC",
+  "main": "lib/core.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  }
+}
