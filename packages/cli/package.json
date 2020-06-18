@@ -1,10 +1,10 @@
 {
-  "name": "cli",
+  "name": "@theindividualcompany/bt-cli",
   "version": "0.0.0",
   "description": "> TODO: description",
   "author": "femyeda <femiao@users.noreply.github.com >",
   "homepage": "",
-  "license": "ISC",
+  "license": "GNU-3.0",
   "main": "lib/cli.js",
   "directories": {
     "lib": "lib",
