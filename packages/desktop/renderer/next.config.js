@@ -8,10 +8,6 @@ module.exports = {
     // makes the devtools much faster
     config.devtool = false
 
-    // config.plugins = config.plugins.filter(plugin => {
-    //   return plugin.constructor.name !== 'UglifyJsPlugin'
-    // })
-
     // Make `react-dom/server` work
     if (config.resolve.alias) {
       delete config.resolve.alias.react
@@ -20,9 +16,9 @@ module.exports = {
 
     return config
   },
-  exportPathMap() {
-    return {
-      '/start': { page: '/start' },
-    }
-  }
+  // exportPathMap() {
+  //   return {
+  //     '/start': { page: '/start' },
+  //   }
+  // }
 }
