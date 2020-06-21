@@ -1,5 +1,5 @@
 {
-  "name": "@theindividualcompany/bt-core",
+  "name": "@theindividualcompany/bt-desktop",
   "version": "0.0.0",
   "description": "bt",
   "main": "main/index.js",
