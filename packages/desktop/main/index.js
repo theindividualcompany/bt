@@ -23,7 +23,7 @@ function createWindow () {
   })
 
   const auth = store.get('auth')
-  const start = auth ? 'start' : 'login'
+  const start = auth ? 'index' : 'login'
 
   const devPath = `http://localhost:8000/${start}`
   const prodPath = format({

@@ -32,11 +32,10 @@ export default () => {
       consumerSecret
     })
 
-    const startPath = window.location.href.includes('http')
-      ? '/start'
-      : `${window.appPath}/renderer/out/start.html`;
-    console.log('startPath', startPath)
-    Router.replace(startPath);
+    const indexPath = window.location.href.includes('http')
+      ? '/index'
+      : `${window.appPath}/renderer/out/index.html`;
+    Router.replace(indexPath);
   }
 
   return (
