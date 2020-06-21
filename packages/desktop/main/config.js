@@ -1,9 +1,6 @@
 const {app} = require('electron')
 const path = require('path')
 const { homedir } = require('os')
-const fs = require('fs-extra')
-const groom = require('groom')
-const deepExtend = require('deep-extend')
 const Store = require('electron-store')
 
 const paths = {
