@@ -1,25 +1,10 @@
 const {app} = require('electron')
 const path = require('path')
-const { homedir } = require('os')
 const Store = require('electron-store')
-
-const paths = {
-  auth: '.bt/auth.json',
-  config: '.bt/config.json'
-}
 
 const { platform } = process
 const isWindows = platform === 'win32'
 const isMacOS = platform === 'darwin'
-
-
-for (const file in paths) {
-  if (!{}.hasOwnProperty.call(paths, file)) {
-    continue
-  }
-
-  paths[file] = path.join(homedir(), paths[file])
-}
 
 const getStore = (opts) => {
   opts = Object.assign({ defaults: { } }, opts);
