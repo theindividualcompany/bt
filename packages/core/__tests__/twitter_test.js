@@ -50,5 +50,6 @@ TwitterProc = new TwitterExportProcessor();
 
     await TwitterProc.clearAllTweets();
 
+
     await TwitterProc.scan();
 })();
