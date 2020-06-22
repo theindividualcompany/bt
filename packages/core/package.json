@@ -17,6 +17,9 @@
     "test": "echo \"Error: run tests from root\" && exit 1"
   },
   "dependencies": {
+    "conf": "^6.2.4",
+    "lodash": "^4.17.15",
+    "loglevel": "^1.6.8",
     "twitter": "^1.7.1"
   }
 }
