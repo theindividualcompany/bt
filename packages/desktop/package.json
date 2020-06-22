@@ -45,10 +45,14 @@
   },
   "license": "GNU-3.0-only",
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^2.3.0",
+    "@tailwindcss/ui": "^0.3.0",
     "electron": "^9.0.4",
     "next": "^9.4.4",
+    "postcss-preset-env": "^6.7.0",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "tailwindcss": "^1.4.6"
   },
   "dependencies": {
     "app-root-path": "^3.0.0",
