@@ -1,7 +1,7 @@
 const Resources = {
   'dm.send': {
     url: 'direct_messages/events/new',
-    payload: (args) => {
+    payload: args => {
       let {recipient_id, text, reply_options} = args
       let payload = {
         event: {
@@ -12,24 +12,48 @@ const Resources = {
             },
             message_data: {
               text,
-            }
-          }
-        }
+            },
+          },
+        },
       }
-      
+
       if (reply_options != null) {
         payload.event.quick_reply = {
           type: 'options',
-          reply_options
+          reply_options,
         }
       }
 
       return payload
-    }
+    },
+  },
+  'dm.list': {
+    url: 'direct_messages/events/list',
+    payload: (count, cursor) => {
+      let payload_args = {}
+
+      if (cursor) {
+        payload_args.cursor = cursor
+      }
+
+      if (!count) {
+        payload_args.count = 25
+      }
+
+      return payload_args
+    },
+  },
+  'dm.show': {
+    url: 'direct_messages/events/show',
+    payload: id => {
+      return {
+        id,
+      }
+    },
   },
   'tweet.send': {
     url: 'statuses/update',
-    payload: (args) => {
+    payload: args => {
       let {text, mentions} = args
       let payload = {
         status: ((text, mentions) => {
@@ -40,12 +64,20 @@ const Resources = {
           }
           return status
         })(text, mentions),
-        stringify_ids: true
+        stringify_ids: true,
       }
 
       return payload
-    }
-  }
+    },
+  },
+  'profile.get': {
+    url: 'users/show',
+    payload: args => {
+      return {
+        ...args,
+      }
+    },
+  },
 }
 
 module.exports = Resources
