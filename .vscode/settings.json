@@ -15,6 +15,7 @@
   "search.exclude": {
     ".git": true,
     "**/**/renderer/out": true,
+    "**/**/renderer/.next": true,
     ".eslintcache": true,
     "app/dist": true,
     "app/main.prod.js": true,
