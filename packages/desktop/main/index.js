@@ -1,4 +1,4 @@
-const { format } = require('url')
+const {format} = require('url')
 
 const {app, BrowserWindow} = require('electron')
 const isDev = require('electron-is-dev')
@@ -7,10 +7,11 @@ const {resolve: resolvePath} = require('app-root-path')
 const path = require('path')
 const prepareIpc = require('./ipc')
 const {store} = require('./config')
+const bt = require('../../core/lib/core')
 
 app.setName('Circlely')
 
-function createWindow () {
+function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 400,
@@ -18,18 +19,29 @@ function createWindow () {
     minWidth: 360,
     minHeight: 700,
     webPreferences: {
-      preload: path.join(app.getAppPath(), 'main/static/preload.js')
-    }
+      preload: path.join(app.getAppPath(), 'main/static/preload.js'),
+    },
   })
 
   const auth = store.get('auth')
   const start = auth ? 'index' : 'login'
 
+  if (auth) {
+    let {access_token_key, access_token_secret, consumer_key, consumer_secret} = auth
+
+    mainWindow.bt = bt.configure({
+      access_token_key,
+      access_token_secret,
+      consumer_key,
+      consumer_secret,
+    })
+  }
+
   const devPath = `http://localhost:8000/${start}`
   const prodPath = format({
     pathname: resolvePath(`renderer/out/${start}`),
     protocol: 'file:',
-    slashes: true
+    slashes: true,
   })
 
   const url = isDev ? devPath : prodPath
@@ -47,14 +59,14 @@ function createWindow () {
 app.on('ready', async () => {
   try {
     await prepareNext('./renderer')
-  } catch(e) {
+  } catch (e) {
     console.log(e)
   }
-  
+
   const mainWindow = createWindow()
-  
+
   prepareIpc(app, mainWindow)
-  app.on('activate', function () {
+  app.on('activate', function() {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -64,6 +76,6 @@ app.on('ready', async () => {
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
+app.on('window-all-closed', function() {
   if (process.platform !== 'darwin') app.quit()
 })
