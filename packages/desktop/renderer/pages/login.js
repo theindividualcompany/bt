@@ -1,41 +1,46 @@
-import { useState } from 'react'
+import {useState} from 'react'
 import Router from 'next/router'
 import ipc from '../utils/ipc'
 
 export default () => {
-  const [accessToken, setAccessToken] = useState('')
-  const [accessTokenSecret, setAccessTokenSecret] = useState('')
-  const [consumerKey, setConsumerKey] = useState('')
-  const [consumerSecret, setConsumerSecret] = useState('')
+  const [access_token_key, setAccessToken] = useState('')
+  const [access_token_secret, setAccessTokenSecret] = useState('')
+  const [consumer_key, setConsumerKey] = useState('')
+  const [consumer_secret, setConsumerSecret] = useState('')
+  const [handle, setHandle] = useState('')
 
   const validateKeyLogin = () => {
-    if (accessToken !== '' &&
-      accessTokenSecret !== '' &&
-      consumerKey !== '' &&
-      consumerSecret !== '') {
+    if (
+      access_token_key !== '' &&
+      access_token_secret !== '' &&
+      consumer_key !== '' &&
+      consumer_secret !== '' &&
+      handle !== ''
+    ) {
       return true
     }
 
     return false
   }
 
-  const doLogin = async (e) => {
+  const doLogin = async e => {
     e.preventDefault()
     if (!validateKeyLogin()) {
       return
     }
 
     await ipc.setLoginCredentials({
-      accessToken,
-      accessTokenSecret,
-      consumerKey,
-      consumerSecret
+      access_token_key,
+      access_token_secret,
+      consumer_key,
+      consumer_secret,
+      handle,
     })
 
     const indexPath = window.location.href.includes('http')
-      ? '/index'
-      : `${window.appPath}/renderer/out/index.html`;
-    Router.replace(indexPath);
+      ? '/followers'
+      : `${window.appPath}/renderer/out/followers.html`
+    Router.replace(indexPath)
   }
 
   return (
@@ -45,16 +50,26 @@ export default () => {
       </header>
       {/* <p>Better Twitter</p> */}
 
-      <form onSubmit={(e) => doLogin(e)}>
-        <label htmlFor='accessToken'>Access Token</label>
+      <form onSubmit={e => doLogin(e)}>
+        <label htmlFor='handle'>Handle</label>
         <input
           tabIndex={0}
           required
           autoFocus={true}
+          placeholder='handle'
+          name='handle'
+          id='handle'
+          value={handle}
+          onChange={event => setHandle(event.target.value)}
+        />
+
+        <label htmlFor='accessToken'>Access Token</label>
+        <input
+          required
           placeholder='accessToken'
           name='accessToken'
           id='accessToken'
-          value={accessToken}
+          value={access_token_key}
           onChange={event => setAccessToken(event.target.value)}
         />
 
@@ -64,7 +79,7 @@ export default () => {
           placeholder='accessTokenSecret'
           name='accessTokenSecret'
           id='accessTokenSecret'
-          value={accessTokenSecret}
+          value={access_token_secret}
           onChange={event => setAccessTokenSecret(event.target.value)}
         />
 
@@ -74,7 +89,7 @@ export default () => {
           placeholder='consumerKey'
           name='consumerKey'
           id='consumerKey'
-          value={consumerKey}
+          value={consumer_key}
           onChange={event => setConsumerKey(event.target.value)}
         />
 
@@ -84,14 +99,11 @@ export default () => {
           placeholder='consumerSecret'
           name='consumerSecret'
           id='consumerSecret'
-          value={consumerSecret}
+          value={consumer_secret}
           onChange={event => setConsumerSecret(event.target.value)}
         />
 
-        <button
-          type='submit'
-          className='button api-login'
-        >
+        <button type='submit' className='button api-login'>
           Continue
         </button>
       </form>
@@ -127,8 +139,8 @@ export default () => {
         }
 
         .twitter-login {
-          background: #1DA1F2;
-          color: white
+          background: #1da1f2;
+          color: white;
         }
       `}</style>
     </article>
