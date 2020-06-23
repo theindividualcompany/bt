@@ -1,5 +1,7 @@
 const {ipcMain} = require('electron')
-const {set} = require('./config')
+const {set, get} = require('./config')
+const fetch = require('node-fetch')
+const bt = require('../../core/lib/core')
 
 module.exports = (app, window) => {
   ipcMain.on('set-login-credentials', async (event, payload) => {
@@ -26,3 +28,12 @@ module.exports = (app, window) => {
     await set('auth', {})
   })
 }
+
+ipcMain.on('get-profile-request', async (event, payload) => {
+  const handle = await get('handle')
+  const profile = await window.bt.get_profile({
+    screen_name: handle,
+  })
+
+  event.sender.send('get-profile-response', profile)
+})
