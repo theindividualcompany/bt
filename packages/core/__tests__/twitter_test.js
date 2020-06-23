@@ -48,7 +48,15 @@ TwitterProc = new TwitterExportProcessor();
     // let retweetsOfMe = await TwitterProc.getRetweetsOfMe(200);
     // log.log(retweetsOfMe);
 
-    await TwitterProc.clearAllTweets();
+    // await TwitterProc.clearAllStoredTweets();
+    // await TwitterProc.clearAllStoredUsers();
 
-    await TwitterProc.scan();
+    await TwitterProc.scan(400, 25);
+    // let tweets = await TwitterProc.getStoredTweets();
+    // let toptweets = TwitterProc.getTopRetweetedTweets(tweets, 200);
+    // log.log(toptweets)
+
+    // let storedUsers = await TwitterProc.getStoredUsers();
+    // console.log(storedUsers);
+
 })();
