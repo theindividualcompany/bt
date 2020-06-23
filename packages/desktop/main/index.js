@@ -16,6 +16,7 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 400,
     height: 800,
+    maxWidth: 500,
     minWidth: 360,
     minHeight: 700,
     webPreferences: {
@@ -24,8 +25,6 @@ function createWindow() {
   })
 
   const auth = store.get('auth')
-  const start = auth ? 'index' : 'login'
-
   if (auth) {
     let {access_token_key, access_token_secret, consumer_key, consumer_secret} = auth
 
@@ -37,6 +36,7 @@ function createWindow() {
     })
   }
 
+  const start = auth ? 'followers' : 'login'
   const devPath = `http://localhost:8000/${start}`
   const prodPath = format({
     pathname: resolvePath(`renderer/out/${start}`),
