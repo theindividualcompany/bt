@@ -29,6 +29,22 @@ class TwitterExportProcessor {
     this.client = new Twitter(authParams)
   }
 
+  getTweetStore() {
+    return this.tweetsFile
+  }
+
+  getUsersStore() {
+    return this.usersFile
+  }
+
+  getConfigStore() {
+    return this.configFile
+  }
+
+  getRankStore() {
+    return this.rankFile
+  }
+
   setConfUsername(username) {
     this.saveData(this.configFile, 'username', username)
   }
@@ -394,13 +410,16 @@ class TwitterExportProcessor {
   async clearAllStoredUsers() {
     return this.deleteData(this.usersFile, 'users')
   }
+
   async getStoredUsers() {
     let storedUsers = await this.loadData(this.usersFile, 'users')
     return _.isUndefined(storedUsers) ? {} : storedUsers
   }
+
   async storeLocalUsers() {
     return this.saveData(this.usersFile, 'users', this.users)
   }
+
   async storeRankings(rankings) {
     return this.saveData(this.rankFile, 'rankings', rankings)
   }
@@ -408,13 +427,16 @@ class TwitterExportProcessor {
   async clearAllStoredTweets() {
     return this.deleteData(this.tweetsFile, 'tweets')
   }
+
   async getStoredTweet(id_str) {
     return this.loadData(this.tweetsFile, 'tweets.' + id_str)
   }
+
   async getStoredTweets() {
     let storedTweets = await this.loadData(this.tweetsFile, 'tweets')
     return _.isUndefined(storedTweets) ? {} : storedTweets
   }
+
   async storeLocalTweets() {
     return this.saveData(this.tweetsFile, 'tweets', this.tweets)
   }
@@ -427,6 +449,7 @@ class TwitterExportProcessor {
     let results = await this.allPromiseGet(this.getFollowersIDsURL(), params, true)
     return results.reduce((a, {ids}) => a.concat(ids), [])
   }
+
   async getFollowerIDs(cursor) {
     console.log('cursor', cursor)
     cursor = typeof cursor !== 'undefined' ? cursor : -1
@@ -443,6 +466,7 @@ class TwitterExportProcessor {
     let results = await this.allPromiseGet(this.RetweetIDsURL, params, true)
     return results.reduce((a, {ids}) => a.concat(ids), [])
   }
+
   //GET statuses/retweets/:id
   //https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-retweets-id
   //Requests / 15-min window (user auth)	75
