@@ -5,301 +5,360 @@ const Twitter = require('twitter')
 const Conf = require('conf')
 
 class TwitterExportProcessor {
-  tweetsFile;
-  usersFile;
-  configFile;
-  rankFile;
+  tweetsFile
+  usersFile
+  configFile
+  rankFile
 
-  client;
+  client
 
-  tweets;
-  users;
+  tweets
+  users
 
-  constructor(authParams) {
-    this.tweetsFile = new Conf({configName:"tweets"})
-    this.usersFile = new Conf({configName:"users"})
-    this.configFile = new Conf({configName: "config"})
-    this.rankFile = new Conf({configName: "rankings"})
+  constructor(authParams, dir) {
+    let options = {}
+    if (dir) {
+      options.cwd = dir
+    }
+
+    this.tweetsFile = new Conf(_.extend({configName: 'tweets'}, options))
+    this.usersFile = new Conf(_.extend({configName: 'users'}, options))
+    this.configFile = new Conf(_.extend({configName: 'twitter-config'}, options))
+    this.rankFile = new Conf(_.extend({configName: 'rankings'}, options))
 
     this.client = new Twitter(authParams)
   }
 
-  setConfUsername(username) {this.saveData(this.configFile, 'username', username)}
-  getConfUsername() {return this.loadData(this.configFile, 'username')}
+  getTweetStore() {
+    return this.tweetsFile
+  }
 
-  loadData(file, key) {return file.get(key)}
-  saveData(file, key, value) { return file.set(key, value)}
-  deleteData(file, key) {file.delete(key)}
+  getUsersStore() {
+    return this.usersFile
+  }
+
+  getConfigStore() {
+    return this.configFile
+  }
+
+  getRankStore() {
+    return this.rankFile
+  }
+
+  setConfUsername(username) {
+    this.saveData(this.configFile, 'username', username)
+  }
+  getConfUsername() {
+    return this.loadData(this.configFile, 'username')
+  }
+
+  loadData(file, key) {
+    return file.get(key)
+  }
+  saveData(file, key, value) {
+    return file.set(key, value)
+  }
+  deleteData(file, key) {
+    file.delete(key)
+  }
 
   fullTimeline = 400
   numCheckRetweets = 10
   fullMentionsLookback = 800
 
   async scan(tweetLookback, retweets, mentionsLookback) {
-    if(_.isUndefined(tweetLookback)){tweetLookback = this.fullTimeline}
-    if(_.isUndefined(retweets)){retweets = this.numCheckRetweets}
-    if(_.isUndefined(mentionsLookback)){mentionsLookback = this.fullMentionsLookback}
+    if (_.isUndefined(tweetLookback)) {
+      tweetLookback = this.fullTimeline
+    }
+    if (_.isUndefined(retweets)) {
+      retweets = this.numCheckRetweets
+    }
+    if (_.isUndefined(mentionsLookback)) {
+      mentionsLookback = this.fullMentionsLookback
+    }
 
-    log.info("Starting Twitter Scan...")
+    log.info('Starting Twitter Scan...')
     await this.scanTweets(tweetLookback)
     await this.scanEngagement(retweets, mentionsLookback)
     await this.buildRankings()
     //Sort by biggest difference between retweet_count and last_retweet_scan_count
-
   }
 
-  getTopRetweetedTweets(tweets, numTweetsReturned){
-    let sortedTweets = _.filter(tweets, function(tweet){return tweet.retweet_count !== tweet.last_retweet_scan_count;});
-    sortedTweets = _.sortBy(sortedTweets,[function(tweet){return tweet.retweet_count - tweet.last_retweet_scan_count;}]);
-    sortedTweets = _.reverse(sortedTweets).slice(0,numTweetsReturned);
-    return sortedTweets;
-
+  getTopRetweetedTweets(tweets, numTweetsReturned) {
+    let sortedTweets = _.filter(tweets, function(tweet) {
+      return tweet.retweet_count !== tweet.last_retweet_scan_count
+    })
+    sortedTweets = _.sortBy(sortedTweets, [
+      function(tweet) {
+        return tweet.retweet_count - tweet.last_retweet_scan_count
+      },
+    ])
+    sortedTweets = _.reverse(sortedTweets).slice(0, numTweetsReturned)
+    return sortedTweets
   }
 
-  async buildRankings(){
-    log.info("Loading Stored Users From File into memory.")
-    log.warn("WARNING: Data loss will occur if program exits before data is stored to file.")
-    this.users = await this.getStoredUsers();
+  async buildRankings() {
+    log.info('Loading Stored Users From File into memory.')
+    log.warn('WARNING: Data loss will occur if program exits before data is stored to file.')
+    this.users = await this.getStoredUsers()
 
-
-    let rankedUsers = _.mapValues(this.users, function(k){
-      let retweet_count = _.isUndefined(k.retweet_count) ? 0 : k.retweet_count;
-      let mention_count = _.isUndefined(k.mention_count) ? 0 : k.mention_count;
+    let rankedUsers = _.mapValues(this.users, function(k) {
+      let retweet_count = _.isUndefined(k.retweet_count) ? 0 : k.retweet_count
+      let mention_count = _.isUndefined(k.mention_count) ? 0 : k.mention_count
 
       let params = {
-        id_str:k.id_str,
-        rank_score:retweet_count + mention_count,
-        screen_name:k.screen_name,
-        retweet_count:retweet_count,
-        mention_count:mention_count
+        id_str: k.id_str,
+        rank_score: retweet_count + mention_count,
+        screen_name: k.screen_name,
+        retweet_count: retweet_count,
+        mention_count: mention_count,
       }
 
-      return params;
+      return params
     })
 
-    rankedUsers = _.sortBy(rankedUsers, function(k){return k.rank_score;})
+    rankedUsers = _.sortBy(rankedUsers, function(k) {
+      return k.rank_score
+    })
     rankedUsers = _.reverse(rankedUsers)
 
-    log.info("Storing Rankings into file...")
+    log.info('Storing Rankings into file...')
     await this.storeRankings(rankedUsers)
-        .then(() => log.info("Rankings saved to file."))
-        .catch(err => log.warn("WARNING: " + err));
-
+      .then(() => log.info('Rankings saved to file.'))
+      .catch(err => log.warn('WARNING: ' + err))
   }
 
-  async scanEngagement(numRetweetScan, numMentionsScan){
-    log.info("Scanning Retweeters.")
+  async scanEngagement(numRetweetScan, numMentionsScan) {
+    log.info('Scanning Retweeters.')
 
-    log.info("Loading Stored Timeline Tweets From File into memory.")
-    log.warn("WARNING: Data loss will occur if program exits before data is stored to file.")
-    this.tweets = await this.getStoredTweets();
+    log.info('Loading Stored Timeline Tweets From File into memory.')
+    log.warn('WARNING: Data loss will occur if program exits before data is stored to file.')
+    this.tweets = await this.getStoredTweets()
 
-    log.info("Loading Stored Users From File into memory.")
-    log.warn("WARNING: Data loss will occur if program exits before data is stored to file.")
-    this.users = await this.getStoredUsers();
+    log.info('Loading Stored Users From File into memory.')
+    log.warn('WARNING: Data loss will occur if program exits before data is stored to file.')
+    this.users = await this.getStoredUsers()
 
-    log.info("Collecting top " + numRetweetScan + " tweets with the highest difference in retweets for each scanned tweet.")
-    let targetTweets = this.getTopRetweetedTweets(this.tweets, numRetweetScan);
-    log.info(targetTweets.length + " tweets found with new retweeters.")
-    let rt_promises = [];
-    let retweeters = [];
+    log.info(
+      'Collecting top ' +
+        numRetweetScan +
+        ' tweets with the highest difference in retweets for each scanned tweet.',
+    )
+    let targetTweets = this.getTopRetweetedTweets(this.tweets, numRetweetScan)
+    log.info(targetTweets.length + ' tweets found with new retweeters.')
+    let rt_promises = []
+    let retweeters = []
 
-    let updateAggUsers = [];
-    let updateTweetScanCount = [];
+    let updateAggUsers = []
+    let updateTweetScanCount = []
     //Get All Retweeters
-    let self = this;
+    let self = this
 
-    if(targetTweets.length > 0) {
-
-      log.info("Querying Twitter API for Retweeters of Top tweets.")
-      targetTweets.forEach(function (tweet) {
-        rt_promises
-            .push(self.getAllRetweetsOfTweet(tweet.id_str)
-                .then(function (results) {
-                      if (!_.isUndefined(results)) {
-                        retweeters.push(results)
-                        log.info("API SUCCESS: Found " + results.length + " retweeters for tweet " + tweet.id_str);
-                        if (results.length === 0) {
-                          log.info("Because 0 retweeters were found, updating last_retweet_scan_count so it doesn't keep checking")
-                          self.updateLocalTweetObjRetweetScanCount(tweet.id_str)
-                        }
-                      }
-                    }
-                )
-                .catch(function (err) {
-                  if (!_.isUndefined(err[0].message) && !_.isUndefined(err[0].code)) {
-                    log.info("API FAILURE: CODE:" + err.code + " MESSAGE: " + err.message);
-                  } else {
-                    log.error("catcherror", err)
-                  }
-                })
-            )
-      });
-
-      await Promise.all(rt_promises);
-      retweeters = retweeters.flat();
-      // log.log(retweeters);
-
-
-      // console.log(this.users);
-      log.info("Processing Retweeters into user data.")
-
-      retweeters.forEach(
-          function (tweet) {
-            if (!_.isUndefined(tweet)) {
-              let retweeted_id = tweet.retweeted_status.id_str;
-              updateTweetScanCount.push(retweeted_id);
-              let user_id = tweet.user.id_str;
-              updateAggUsers.push(user_id);
-              // log.log(tweet.user)
-              self.updateLocalUserObjRetweets(user_id, tweet.id_str, tweet.created_at, retweeted_id);
-              self.updateLocalUserObjParam(user_id, "followers_count", tweet.user.followers_count);
-              self.updateLocalUserObjParam(user_id, "screen_name", tweet.user.screen_name);
-            }
-
-          })
-    }
-
-      // Get Mentions Engagement
-      let mentions = await this.getMentionsTimeline(numMentionsScan);
-      log.info(mentions.length + " mentions have been found. ")
-      log.info("Processing Mentions into user data.")
-      mentions.forEach(function(tweet){
-        if(!_.isUndefined(tweet)) {
-          let user_id = tweet.user.id_str;
-          let in_reply_to_status_id_str = tweet.in_reply_to_status_id_str
-          updateAggUsers.push(user_id);
-          self.updateLocalUserObjMentions(user_id, tweet.id_str, tweet.created_at, in_reply_to_status_id_str, tweet.text);
-          self.updateLocalUserObjParam(user_id, "followers_count", tweet.user.followers_count);
-          self.updateLocalUserObjParam(user_id, "screen_name", tweet.user.screen_name);
-
-        }
+    if (targetTweets.length > 0) {
+      log.info('Querying Twitter API for Retweeters of Top tweets.')
+      targetTweets.forEach(function(tweet) {
+        rt_promises.push(
+          self
+            .getAllRetweetsOfTweet(tweet.id_str)
+            .then(function(results) {
+              if (!_.isUndefined(results)) {
+                retweeters.push(results)
+                log.info('API SUCCESS: Found ' + results.length + ' retweeters for tweet ' + tweet.id_str)
+                if (results.length === 0) {
+                  log.info(
+                    "Because 0 retweeters were found, updating last_retweet_scan_count so it doesn't keep checking",
+                  )
+                  self.updateLocalTweetObjRetweetScanCount(tweet.id_str)
+                }
+              }
+            })
+            .catch(function(err) {
+              if (!_.isUndefined(err[0].message) && !_.isUndefined(err[0].code)) {
+                log.info('API FAILURE: CODE:' + err.code + ' MESSAGE: ' + err.message)
+              } else {
+                log.error('catcherror', err)
+              }
+            }),
+        )
       })
 
-      updateTweetScanCount = _.uniq(updateTweetScanCount);
-      updateAggUsers = _.uniq(updateAggUsers);
-      updateTweetScanCount.forEach(function (id_str) {self.updateLocalTweetObjRetweetScanCount(id_str)});
-      updateAggUsers.forEach(function (id_str) {self.updateLocalUserObjAggregates(id_str)});
+      await Promise.all(rt_promises)
+      retweeters = retweeters.flat()
+      // log.log(retweeters);
 
-      // log.log(this.users)
-      // log.log(updateTweetScanCount);
+      // console.log(this.users);
+      log.info('Processing Retweeters into user data.')
 
-      log.info("Storing Users into file...")
-      await this.storeLocalUsers()
-          .then(() => log.info("Users saved to file."))
-          .catch(err => log.warn("WARNING: " + err));
+      retweeters.forEach(function(tweet) {
+        if (!_.isUndefined(tweet)) {
+          let retweeted_id = tweet.retweeted_status.id_str
+          updateTweetScanCount.push(retweeted_id)
+          let user_id = tweet.user.id_str
+          updateAggUsers.push(user_id)
+          // log.log(tweet.user)
+          self.updateLocalUserObjRetweets(user_id, tweet.id_str, tweet.created_at, retweeted_id)
+          self.updateLocalUserObjParam(user_id, 'followers_count', tweet.user.followers_count)
+          self.updateLocalUserObjParam(user_id, 'screen_name', tweet.user.screen_name)
+        }
+      })
+    }
 
-      log.info("Storing Timeline Tweets into file...")
-      await this.storeLocalTweets()
-          .then(() => log.info("Timeline Tweets saved to file."))
-          .catch(err => log.warn("WARNING: " + err));
+    // Get Mentions Engagement
+    let mentions = await this.getMentionsTimeline(numMentionsScan)
+    log.info(mentions.length + ' mentions have been found. ')
+    log.info('Processing Mentions into user data.')
+    mentions.forEach(function(tweet) {
+      if (!_.isUndefined(tweet)) {
+        let user_id = tweet.user.id_str
+        let in_reply_to_status_id_str = tweet.in_reply_to_status_id_str
+        updateAggUsers.push(user_id)
+        self.updateLocalUserObjMentions(
+          user_id,
+          tweet.id_str,
+          tweet.created_at,
+          in_reply_to_status_id_str,
+          tweet.text,
+        )
+        self.updateLocalUserObjParam(user_id, 'followers_count', tweet.user.followers_count)
+        self.updateLocalUserObjParam(user_id, 'screen_name', tweet.user.screen_name)
+      }
+    })
 
+    updateTweetScanCount = _.uniq(updateTweetScanCount)
+    updateAggUsers = _.uniq(updateAggUsers)
+    updateTweetScanCount.forEach(function(id_str) {
+      self.updateLocalTweetObjRetweetScanCount(id_str)
+    })
+    updateAggUsers.forEach(function(id_str) {
+      self.updateLocalUserObjAggregates(id_str)
+    })
 
+    // log.log(this.users)
+    // log.log(updateTweetScanCount);
+
+    log.info('Storing Users into file...')
+    await this.storeLocalUsers()
+      .then(() => log.info('Users saved to file.'))
+      .catch(err => log.warn('WARNING: ' + err))
+
+    log.info('Storing Timeline Tweets into file...')
+    await this.storeLocalTweets()
+      .then(() => log.info('Timeline Tweets saved to file.'))
+      .catch(err => log.warn('WARNING: ' + err))
   }
 
-
-
-
-  setLocalUserObjIfNotThere(id_str){
-    if(_.isUndefined(this.users[id_str])){
-      log.info("New User Found and Generated: " + id_str);
-      this.users[id_str] = {id_str:id_str,num_dms_sent:0};
-      this.users[id_str]["retweets"] = {};
-      this.users[id_str]["mentions"] = {};
+  setLocalUserObjIfNotThere(id_str) {
+    if (_.isUndefined(this.users[id_str])) {
+      log.info('New User Found and Generated: ' + id_str)
+      this.users[id_str] = {id_str: id_str, num_dms_sent: 0}
+      this.users[id_str]['retweets'] = {}
+      this.users[id_str]['mentions'] = {}
     }
   }
 
-  updateLocalUserObjAggregates(id_str){
-    if(!_.isUndefined(this.users[id_str])){
-
-
-      if(!_.isUndefined(this.users[id_str]['retweets']) && Object.keys(this.users[id_str]['retweets']).length > 0){
-        log.info("Processing retweet_count and last_retweet_created_at for user " + id_str)
-        let sortedRetweets = _.sortBy(this.users[id_str]['retweets'], function(rt){return rt.created_at});
-        this.updateLocalUserObjParam(id_str, "retweet_count", sortedRetweets.length);
-        this.updateLocalUserObjParam(id_str, "last_retweet_created_at", _.last(sortedRetweets).created_at);
+  updateLocalUserObjAggregates(id_str) {
+    if (!_.isUndefined(this.users[id_str])) {
+      if (
+        !_.isUndefined(this.users[id_str]['retweets']) &&
+        Object.keys(this.users[id_str]['retweets']).length > 0
+      ) {
+        log.info('Processing retweet_count and last_retweet_created_at for user ' + id_str)
+        let sortedRetweets = _.sortBy(this.users[id_str]['retweets'], function(rt) {
+          return rt.created_at
+        })
+        this.updateLocalUserObjParam(id_str, 'retweet_count', sortedRetweets.length)
+        this.updateLocalUserObjParam(id_str, 'last_retweet_created_at', _.last(sortedRetweets).created_at)
       }
 
-      if(!_.isUndefined(this.users[id_str]['mentions']) && Object.keys(this.users[id_str]['mentions']).length > 0){
-        log.info("Processing mention_count and last_mention_created_at for user " + id_str)
-        let sortedMentions = _.sortBy(this.users[id_str]['mentions'], function(rt){return rt.created_at});
-        this.updateLocalUserObjParam(id_str, "mention_count", sortedMentions.length);
-        this.updateLocalUserObjParam(id_str, "last_mention_created_at", _.last(sortedMentions).created_at);
+      if (
+        !_.isUndefined(this.users[id_str]['mentions']) &&
+        Object.keys(this.users[id_str]['mentions']).length > 0
+      ) {
+        log.info('Processing mention_count and last_mention_created_at for user ' + id_str)
+        let sortedMentions = _.sortBy(this.users[id_str]['mentions'], function(rt) {
+          return rt.created_at
+        })
+        this.updateLocalUserObjParam(id_str, 'mention_count', sortedMentions.length)
+        this.updateLocalUserObjParam(id_str, 'last_mention_created_at', _.last(sortedMentions).created_at)
       }
       // console.log(sortedTweets)
       // this.updateLocalUserObjParam(id_str, "retweets", sortedTweets);
-
     }
   }
 
-  updateLocalUserObjRetweets(id_str, retweet_id, created_at,retweeted_id){
-    this.setLocalUserObjIfNotThere(id_str);
-    if(_.isUndefined(this.users[id_str]["retweets"][retweet_id])) {
-      log.info("New User Retweet Found: Adding Retweet " + retweet_id + " to user " + id_str);
-      this.users[id_str]["retweets"][retweet_id] = {created_at: created_at,retweeted_id:retweeted_id};
+  updateLocalUserObjRetweets(id_str, retweet_id, created_at, retweeted_id) {
+    this.setLocalUserObjIfNotThere(id_str)
+    if (_.isUndefined(this.users[id_str]['retweets'][retweet_id])) {
+      log.info('New User Retweet Found: Adding Retweet ' + retweet_id + ' to user ' + id_str)
+      this.users[id_str]['retweets'][retweet_id] = {created_at: created_at, retweeted_id: retweeted_id}
     }
   }
 
-  updateLocalUserObjMentions(id_str, mention_id, created_at,in_reply_to_status_id_str, text){
-    this.setLocalUserObjIfNotThere(id_str);
-    if(_.isUndefined(this.users[id_str]["mentions"][mention_id])) {
-      log.info("New User Mention Found: Adding Mention " + mention_id + " to user " + id_str);
-      let mParams = {created_at: created_at, text:text};
-      if(!_.isUndefined(in_reply_to_status_id_str) && in_reply_to_status_id_str !== null){
-        mParams['in_reply_to_status_id_str'] = in_reply_to_status_id_str;
+  updateLocalUserObjMentions(id_str, mention_id, created_at, in_reply_to_status_id_str, text) {
+    this.setLocalUserObjIfNotThere(id_str)
+    if (_.isUndefined(this.users[id_str]['mentions'][mention_id])) {
+      log.info('New User Mention Found: Adding Mention ' + mention_id + ' to user ' + id_str)
+      let mParams = {created_at: created_at, text: text}
+      if (!_.isUndefined(in_reply_to_status_id_str) && in_reply_to_status_id_str !== null) {
+        mParams['in_reply_to_status_id_str'] = in_reply_to_status_id_str
       }
 
-      this.users[id_str]["mentions"][mention_id] = mParams;
+      this.users[id_str]['mentions'][mention_id] = mParams
     }
   }
 
-  updateLocalUserObjParam(id_str, parameter, value){
-    this.setLocalUserObjIfNotThere(id_str);
-    log.info("Updating User Parameter " + parameter + " to " + value);
-    this.users[id_str][parameter] = value;
+  updateLocalUserObjParam(id_str, parameter, value) {
+    this.setLocalUserObjIfNotThere(id_str)
+    log.info('Updating User Parameter ' + parameter + ' to ' + value)
+    this.users[id_str][parameter] = value
   }
 
-  updateLocalTweetObjRetweetScanCount(id_str){
-    if(!_.isUndefined(this.tweets[id_str]) && !_.isUndefined(this.tweets[id_str]['retweet_count'])){
-      log.info("Updating Tweet " + id_str + " last_retweet_scan_count from " + this.tweets[id_str]['last_retweet_scan_count'] + " to " + this.tweets[id_str]['retweet_count']);
-      this.updateLocalTweetObjParam(id_str, "last_retweet_scan_count",this.tweets[id_str]['retweet_count']);
+  updateLocalTweetObjRetweetScanCount(id_str) {
+    if (!_.isUndefined(this.tweets[id_str]) && !_.isUndefined(this.tweets[id_str]['retweet_count'])) {
+      log.info(
+        'Updating Tweet ' +
+          id_str +
+          ' last_retweet_scan_count from ' +
+          this.tweets[id_str]['last_retweet_scan_count'] +
+          ' to ' +
+          this.tweets[id_str]['retweet_count'],
+      )
+      this.updateLocalTweetObjParam(id_str, 'last_retweet_scan_count', this.tweets[id_str]['retweet_count'])
     }
   }
 
-  updateLocalTweetObjParam(id_str, parameter, value){
-    if(!_.isUndefined(this.tweets[id_str])){
-      this.tweets[id_str][parameter] = value;
+  updateLocalTweetObjParam(id_str, parameter, value) {
+    if (!_.isUndefined(this.tweets[id_str])) {
+      this.tweets[id_str][parameter] = value
     }
   }
 
-
-  async scanTweets(tweetLookback){
+  async scanTweets(tweetLookback) {
     tweetLookback = !_.isUndefined(tweetLookback) ? tweetLookback : this.fullTimeline
-    log.info("Starting Tweet Timeline Scan. Lookback is " + tweetLookback);
+    log.info('Starting Tweet Timeline Scan. Lookback is ' + tweetLookback)
     //Scan User Timeline Tweets
-    log.info("Grabbing Timeline Tweets from Twitter API...")
-    let tweets = await this.getUserTimelineTweets(tweetLookback, await this.getConfUsername());
-    log.info(tweets.length + " Timeline Tweets have been collected.")
+    log.info('Grabbing Timeline Tweets from Twitter API...')
+    let tweets = await this.getUserTimelineTweets(tweetLookback, await this.getConfUsername())
+    log.info(tweets.length + ' Timeline Tweets have been collected.')
     //Store Scanned Tweets
-    await this.processTweets(tweets);
+    await this.processTweets(tweets)
   }
 
-  async processTweets(tweets){
-    log.info("Loading Stored Timeline Tweets From File into memory.")
-    log.warn("WARNING: Data loss will occur if program exits before data is stored to file.")
-    this.tweets = await this.getStoredTweets();
+  async processTweets(tweets) {
+    log.info('Loading Stored Timeline Tweets From File into memory.')
+    log.warn('WARNING: Data loss will occur if program exits before data is stored to file.')
+    this.tweets = await this.getStoredTweets()
 
-    log.info("Processing Timeline Tweets.")
+    log.info('Processing Timeline Tweets.')
     while (tweets.length > 0) {
       let tweetInfo = this.prepareTweetObj(tweets.shift())
-      this.tweets[tweetInfo.id_str] = tweetInfo;
+      this.tweets[tweetInfo.id_str] = tweetInfo
     }
 
-    log.info("Storing Timeline Tweets into file...")
+    log.info('Storing Timeline Tweets into file...')
     await this.storeLocalTweets()
-        .then( () =>log.info("Timeline Tweets saved to file."))
-        .catch(err => log.warn("WARNING: " + err));
-
+      .then(() => log.info('Timeline Tweets saved to file.'))
+      .catch(err => log.warn('WARNING: ' + err))
   }
 
   prepareTweetObj(tweet) {
@@ -308,54 +367,79 @@ class TwitterExportProcessor {
     //Tweet Found In Storage
     if (!_.isUndefined(tweetStored)) {
       if (tweetStored.retweet_count < tweet.retweet_count) {
-        log.info("Retweet Count for tweet " + tweet.id_str + " of " + tweetStored.retweet_count + " updated to " + tweet.retweet_count)
-        tweetStored = this.prepareUpdatedTweetObj(tweet,tweetStored)
+        log.info(
+          'Retweet Count for tweet ' +
+            tweet.id_str +
+            ' of ' +
+            tweetStored.retweet_count +
+            ' updated to ' +
+            tweet.retweet_count,
+        )
+        tweetStored = this.prepareUpdatedTweetObj(tweet, tweetStored)
       }
-      return tweetStored;
+      return tweetStored
     }
-    log.info("New Timeline Tweet "+ tweet.id_str +" found and added to memory")
+    log.info('New Timeline Tweet ' + tweet.id_str + ' found and added to memory')
     return this.prepareNewTweetObj(tweet)
   }
 
-  prepareUpdatedTweetObj(tweet,tweetStored) {
+  prepareUpdatedTweetObj(tweet, tweetStored) {
     if (tweet.id_str) {
-      tweetStored.retweet_count = tweet.retweet_count;
-      tweetStored.favorite_count = tweet.favorite_count;
+      tweetStored.retweet_count = tweet.retweet_count
+      tweetStored.favorite_count = tweet.favorite_count
     }
-    return tweetStored;
+    return tweetStored
   }
 
   prepareNewTweetObj(tweet) {
     if (tweet.id_str) {
       let tweetData = {
-        'id_str':tweet.id_str,
-        'is_quote_status':tweet.is_quote_status,
-        'retweet_count':tweet.retweet_count,
-        'last_retweet_scan_count':0,
-        'favorite_count':tweet.favorite_count,
-        'created_at':tweet.created_at,
-        'text':tweet.text,
+        id_str: tweet.id_str,
+        is_quote_status: tweet.is_quote_status,
+        retweet_count: tweet.retweet_count,
+        last_retweet_scan_count: 0,
+        favorite_count: tweet.favorite_count,
+        created_at: tweet.created_at,
+        text: tweet.text,
       }
-      return tweetData;
+      return tweetData
     }
-    return {};
+    return {}
   }
 
-  async clearAllStoredUsers() {return this.deleteData(this.usersFile, 'users')}
-  async getStoredUsers(){
-    let storedUsers = await this.loadData(this.usersFile, 'users');
-    return _.isUndefined(storedUsers) ? {} : storedUsers;
+  async clearAllStoredUsers() {
+    return this.deleteData(this.usersFile, 'users')
   }
-  async storeLocalUsers(){return this.saveData(this.usersFile, "users", this.users);}
-  async storeRankings(rankings){return this.saveData(this.rankFile, "rankings", rankings);}
 
-  async clearAllStoredTweets() {return this.deleteData(this.tweetsFile, 'tweets')}
-  async getStoredTweet(id_str) {return this.loadData(this.tweetsFile, 'tweets.' + id_str)}
+  async getStoredUsers() {
+    let storedUsers = await this.loadData(this.usersFile, 'users')
+    return _.isUndefined(storedUsers) ? {} : storedUsers
+  }
+
+  async storeLocalUsers() {
+    return this.saveData(this.usersFile, 'users', this.users)
+  }
+
+  async storeRankings(rankings) {
+    return this.saveData(this.rankFile, 'rankings', rankings)
+  }
+
+  async clearAllStoredTweets() {
+    return this.deleteData(this.tweetsFile, 'tweets')
+  }
+
+  async getStoredTweet(id_str) {
+    return this.loadData(this.tweetsFile, 'tweets.' + id_str)
+  }
+
   async getStoredTweets() {
-    let storedTweets = await this.loadData(this.tweetsFile, 'tweets');
-    return _.isUndefined(storedTweets) ? {} : storedTweets;
+    let storedTweets = await this.loadData(this.tweetsFile, 'tweets')
+    return _.isUndefined(storedTweets) ? {} : storedTweets
   }
-  async storeLocalTweets(){return this.saveData(this.tweetsFile,"tweets",this.tweets);}
+
+  async storeLocalTweets() {
+    return this.saveData(this.tweetsFile, 'tweets', this.tweets)
+  }
 
   //GET followers/list
   //https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-followers-list
@@ -365,6 +449,7 @@ class TwitterExportProcessor {
     let results = await this.allPromiseGet(this.getFollowersIDsURL(), params, true)
     return results.reduce((a, {ids}) => a.concat(ids), [])
   }
+
   async getFollowerIDs(cursor) {
     console.log('cursor', cursor)
     cursor = typeof cursor !== 'undefined' ? cursor : -1
@@ -381,6 +466,7 @@ class TwitterExportProcessor {
     let results = await this.allPromiseGet(this.RetweetIDsURL, params, true)
     return results.reduce((a, {ids}) => a.concat(ids), [])
   }
+
   //GET statuses/retweets/:id
   //https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-retweets-id
   //Requests / 15-min window (user auth)	75
@@ -391,14 +477,18 @@ class TwitterExportProcessor {
     return results
   }
 
-  getRetweetsURL(tweet_id) {return 'https://api.twitter.com/1.1/statuses/retweets/' + tweet_id + '.json'}
+  getRetweetsURL(tweet_id) {
+    return 'https://api.twitter.com/1.1/statuses/retweets/' + tweet_id + '.json'
+  }
 
   //Depreciated
   async getAllUserTimelineTweets(screen_name, count, max_id) {
     max_id = !_.isUndefined(max_id) ? max_id : ''
 
     let params = {screen_name: screen_name, count: count, trim_user: true, include_rts: false}
-    if (max_id !== '') {params.max_id = max_id}
+    if (max_id !== '') {
+      params.max_id = max_id
+    }
     // log.log(params);
     let results = await this.allPromiseGet(this.TimelineTweetsURL, params)
     return results
@@ -412,9 +502,9 @@ class TwitterExportProcessor {
     do {
       let results = await this.getAllUserTimelineTweets(screen_name, Math.min(maxSingle, count), max_id)
       // log.log(results);
-      if(_.isUndefined(results)){
-        log.warn("UNDEFINED RESULTS FOR TIMELINE TWEETS. Gracefully aborting scan...")
-        break;
+      if (_.isUndefined(results)) {
+        log.warn('UNDEFINED RESULTS FOR TIMELINE TWEETS. Gracefully aborting scan...')
+        break
       }
       let earliestTweet = _.last(results)
       max_id = earliestTweet.id_str
@@ -442,10 +532,10 @@ class TwitterExportProcessor {
     let tweet_ids = []
     let obj = this
     timeline_tweets.forEach(function(element) {
-      if(!_.isUndefined(element)) {
+      if (!_.isUndefined(element)) {
         element.retweet_ids = obj
-            .getAllStatusRetweetIDs(element.id_str)
-            .then(result => (element.retweet_ids = result))
+          .getAllStatusRetweetIDs(element.id_str)
+          .then(result => (element.retweet_ids = result))
       }
     })
 
@@ -487,7 +577,6 @@ class TwitterExportProcessor {
     return aggResults
   }
 
-
   //GET statuses/user_timeline
   //https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline
   // Requests / 15-min window (user auth)	900
@@ -498,9 +587,11 @@ class TwitterExportProcessor {
   // 3200 Total Max
   // Works for any user
   TimelineTweetsURL = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
-  async getUserTimelineTweets(count,screen_name){
+  async getUserTimelineTweets(count, screen_name) {
     let extraParams = {trim_user: true, include_rts: false}
-    if(!_.isUndefined(screen_name)){extraParams["screen_name"] = screen_name;}
+    if (!_.isUndefined(screen_name)) {
+      extraParams['screen_name'] = screen_name
+    }
     return await this.allPromiseGetTimeline(this.TimelineTweetsURL, count, extraParams)
   }
 
@@ -515,7 +606,7 @@ class TwitterExportProcessor {
     return await this.allPromiseGetTimeline(this.MentionsTimelineURL, count)
   }
 
-  async allPromiseGetTimeline(endpoint, count, extraParams){
+  async allPromiseGetTimeline(endpoint, count, extraParams) {
     let fullResults = []
     let maxSingle = 200
     let remaining = count
@@ -523,23 +614,25 @@ class TwitterExportProcessor {
     extraParams = !_.isUndefined(extraParams) ? extraParams : {}
 
     do {
-      let runParams = {count:Math.min(maxSingle, count)}
-      Object.assign(runParams, extraParams);
-      if (max_id !== '') {runParams.max_id = max_id}
+      let runParams = {count: Math.min(maxSingle, count)}
+      Object.assign(runParams, extraParams)
+      if (max_id !== '') {
+        runParams.max_id = max_id
+      }
       let results = await this.allPromiseGet(endpoint, runParams)
 
-      if(_.isUndefined(results)){
-        log.warn("UNDEFINED RESULTS FOR TIMELINE TWEETS. Gracefully aborting scan...")
-        break;
+      if (_.isUndefined(results)) {
+        log.warn('UNDEFINED RESULTS FOR TIMELINE TWEETS. Gracefully aborting scan...')
+        break
       }
 
       let earliestTweet = _.last(results)
       max_id = earliestTweet.id_str
       fullResults = fullResults.concat(results)
       remaining = remaining - maxSingle
-    }while(remaining > 0)
+    } while (remaining > 0)
 
-    return fullResults;
+    return fullResults
   }
 
   //aggregateCollection => cursor navigation put all results into array
@@ -556,10 +649,12 @@ class TwitterExportProcessor {
     do {
       let getResult = await this.promiseGet(endpoint, params).catch(function(error) {
         errorFound = true
-        if(!_.isUndefined(error[0].message) && !_.isUndefined(error[0].code)){
-          log.warn("API ERROR FOR GATEWAY: " + endpoint + " CODE:" + error[0].code + " MESSAGE: " + error[0].message);
-        }else{
-          log.warn("UNEXPECTED ERROR", error)
+        if (!_.isUndefined(error[0].message) && !_.isUndefined(error[0].code)) {
+          log.warn(
+            'API ERROR FOR GATEWAY: ' + endpoint + ' CODE:' + error[0].code + ' MESSAGE: ' + error[0].message,
+          )
+        } else {
+          log.warn('UNEXPECTED ERROR', error)
         }
       })
       if (errorFound === false) {

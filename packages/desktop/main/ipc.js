@@ -16,12 +16,17 @@ module.exports = (app, window) => {
 
     await set('handle', handle)
 
-    window.bt = bt.configure({
-      access_token_key,
-      access_token_secret,
-      consumer_key,
-      consumer_secret,
-    })
+    window.bt = bt.configure(
+      {
+        access_token_key,
+        access_token_secret,
+        consumer_key,
+        consumer_secret,
+      },
+      app.getPath('userData'),
+    )
+
+    await window.bt.scanner.setConfUsername(handle)
   })
 
   ipcMain.on('logout', async (event, payload) => {
