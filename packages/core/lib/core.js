@@ -5,9 +5,11 @@ var Resources = require('./TwitterResources')
 const dm = require('./dm')
 const tweet = require('./tweet')
 const profile = require('./profile')
+const TEP = require('./TwitterExportProcessor')
 
 const core = (() => {
   let client
+  let scanner
 
   const getClient = opts => {
     if (client) {
@@ -16,11 +18,21 @@ const core = (() => {
     return new Twitter(opts)
   }
 
+  const getScanner = (opts, dir) => {
+    if (scanner) {
+      return scanner
+    }
+
+    return new TEP(opts, dir)
+  }
+
   return {
-    configure: opts => {
+    configure: (opts, dir) => {
       client = client ? client : getClient(opts)
+      scanner = scanner ? scanner : getScanner(opts, dir)
 
       return {
+        scanner,
         send_message: args => {
           let {recipient_id, text, reply_options} = args
           if (!getClient()) {
