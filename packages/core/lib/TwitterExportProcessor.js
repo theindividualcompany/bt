@@ -23,7 +23,7 @@ class TwitterExportProcessor {
 
     this.tweetsFile = new Conf(_.extend({configName: 'tweets'}, options))
     this.usersFile = new Conf(_.extend({configName: 'users'}, options))
-    this.configFile = new Conf(_.extend({configName: 'config'}, options))
+    this.configFile = new Conf(_.extend({configName: 'twitter-config'}, options))
     this.rankFile = new Conf(_.extend({configName: 'rankings'}, options))
 
     this.client = new Twitter(authParams)
