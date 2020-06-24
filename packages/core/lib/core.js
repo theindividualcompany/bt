@@ -5,6 +5,7 @@ var Resources = require('./TwitterResources')
 const dm = require('./dm')
 const tweet = require('./tweet')
 const profile = require('./profile')
+const scanner = require('./TwitterExportProcessor')
 
 const core = (() => {
   let client
@@ -21,6 +22,7 @@ const core = (() => {
       client = client ? client : getClient(opts)
 
       return {
+        scanner,
         send_message: args => {
           let {recipient_id, text, reply_options} = args
           if (!getClient()) {
