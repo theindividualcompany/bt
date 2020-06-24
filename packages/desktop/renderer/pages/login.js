@@ -38,8 +38,8 @@ export default () => {
     })
 
     const indexPath = window.location.href.includes('http')
-      ? '/followers'
-      : `${window.appPath}/renderer/out/followers.html`
+      ? '/index'
+      : `${window.appPath}/renderer/out/index.html`
     Router.replace(indexPath)
   }
 

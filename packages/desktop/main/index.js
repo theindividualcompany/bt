@@ -36,7 +36,7 @@ function createWindow() {
     })
   }
 
-  const start = auth ? 'followers' : 'login'
+  const start = auth ? 'index' : 'login'
   const devPath = `http://localhost:8000/${start}`
   const prodPath = format({
     pathname: resolvePath(`renderer/out/${start}`),
