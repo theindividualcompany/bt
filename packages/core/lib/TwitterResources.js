@@ -78,6 +78,9 @@ const Resources = {
       }
     },
   },
+  'verify_credentials.get': {
+    url: 'account/verify_credentials',
+  },
 }
 
 module.exports = Resources

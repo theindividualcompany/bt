@@ -6,6 +6,7 @@ const dm = require('./dm')
 const tweet = require('./tweet')
 const profile = require('./profile')
 const TEP = require('./TwitterExportProcessor')
+const verify_credentials = require('./verify_credentials')
 
 const core = (() => {
   let client
@@ -122,6 +123,20 @@ const core = (() => {
             })
             .catch(reason => {
               console.log(reason)
+            })
+        },
+        get_auth_user: args => {
+          if (!getClient()) {
+            console.log('Please configure Twitter Client')
+            return
+          }
+
+          return verify_credentials(getClient(), args)
+            .then(res => {
+              return res
+            })
+            .catch(reason => {
+              console.log('error', reason)
             })
         },
       }
