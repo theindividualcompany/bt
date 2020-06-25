@@ -6,6 +6,7 @@ const dm = require('./dm')
 const tweet = require('./tweet')
 const profile = require('./profile')
 const TEP = require('./TwitterExportProcessor')
+const verify_credentials = require('./verify_credentials')
 
 const core = (() => {
   let client
@@ -117,13 +118,21 @@ const core = (() => {
           }
 
           return profile(getClient(), profile_args)
-            .then(res => {
-              return res
-            })
-            .catch(reason => {
-              console.log(reason)
-            })
+            .then(res => {return res})
+            .catch(reason => {console.log(reason)})
         },
+        get_handle: args => {
+            if (!getClient()) {
+              console.log('Please configure Twitter Client')
+              return
+            }
+
+            return scanner.getVerifyCredentials();
+            // return verify_credentials(getClient(), args)
+            //     .then(res => {return res})
+            //     .catch(reason => {console.log("error", reason)})
+          }
+
       }
     },
   }

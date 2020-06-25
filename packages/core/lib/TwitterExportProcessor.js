@@ -110,6 +110,13 @@ class TwitterExportProcessor {
         id_str: k.id_str,
         rank_score: retweet_count + mention_count,
         screen_name: k.screen_name,
+        name: k.name ? k.name : "",
+        profile_image_url_https: k.profile_image_url_https ? k.profile_image_url_https : "",
+        verified: k.verified ? k.verified : false,
+        url: k.url ? k.url : "",
+        location: k.location ? k.location : "",
+        description: k.description ? k.description : "",
+        followers:k.followers ? k.followers : 0,
         retweet_count: retweet_count,
         mention_count: mention_count,
       }
@@ -199,6 +206,12 @@ class TwitterExportProcessor {
           self.updateLocalUserObjRetweets(user_id, tweet.id_str, tweet.created_at, retweeted_id)
           self.updateLocalUserObjParam(user_id, 'followers_count', tweet.user.followers_count)
           self.updateLocalUserObjParam(user_id, 'screen_name', tweet.user.screen_name)
+          self.updateLocalUserObjParam(user_id, 'name', tweet.user.name)
+          self.updateLocalUserObjParam(user_id, 'url', tweet.user.url)
+          self.updateLocalUserObjParam(user_id, 'profile_image_url_https', tweet.user.profile_image_url_https)
+          self.updateLocalUserObjParam(user_id, 'verified', tweet.user.verified)
+          self.updateLocalUserObjParam(user_id, 'location', tweet.user.location)
+          self.updateLocalUserObjParam(user_id, 'description', tweet.user.description)
         }
       })
     }
@@ -221,6 +234,12 @@ class TwitterExportProcessor {
         )
         self.updateLocalUserObjParam(user_id, 'followers_count', tweet.user.followers_count)
         self.updateLocalUserObjParam(user_id, 'screen_name', tweet.user.screen_name)
+        self.updateLocalUserObjParam(user_id, 'name', tweet.user.name)
+        self.updateLocalUserObjParam(user_id, 'url', tweet.user.url)
+        self.updateLocalUserObjParam(user_id, 'profile_image_url_https', tweet.user.profile_image_url_https)
+        self.updateLocalUserObjParam(user_id, 'verified', tweet.user.verified)
+        self.updateLocalUserObjParam(user_id, 'location', tweet.user.location)
+        self.updateLocalUserObjParam(user_id, 'description', tweet.user.description)
       }
     })
 
@@ -576,6 +595,16 @@ class TwitterExportProcessor {
     allResults.forEach(ele => console.log(ele.connections))
     return aggResults
   }
+
+  //GET account/verify_credentials
+  //https://developer.twitter.com/en/docs/accounts-and-users/manage-account-settings/api-reference/get-account-verify_credentials
+  // Rate limited?	Yes
+  // Requests / 15-min window (user auth)	75
+  VerifyCredentialsURL = "https://api.twitter.com/1.1/account/verify_credentials.json"
+  async getVerifyCredentials(){
+    return this.promiseGet(this.VerifyCredentialsURL, {});
+  }
+
 
   //GET statuses/user_timeline
   //https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline
