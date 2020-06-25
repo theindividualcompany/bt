@@ -41,6 +41,16 @@ const prepare = (app, window) => {
 
     event.sender.send('get-profile-response', profile)
   })
+
+  ipcMain.on('start-ranked-scan-request', async (event, payload) => {
+    await window.bt.scanner.scan()
+    event.sender.send('start-ranked-scan-response', 'finished')
+  })
+
+  ipcMain.on('get-ranked-request', async (event, payload) => {
+    const ranked = window.bt.scanner.getRankStore().get('rankings')
+    event.sender.send('get-ranked-response', ranked)
+  })
 }
 
 module.exports = prepare
