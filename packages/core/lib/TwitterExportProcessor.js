@@ -3,6 +3,7 @@ const log = require('loglevel')
 const _ = require('lodash')
 const Twitter = require('twitter')
 const Conf = require('conf')
+const GatewayAPI = require('./TwitterGatewayAPI')
 
 class TwitterExportProcessor {
   tweetsFile
@@ -15,6 +16,8 @@ class TwitterExportProcessor {
 
   tweets
   users
+  campaigns
+
 
   constructor(authParams, dir) {
     let options = {}
@@ -26,42 +29,23 @@ class TwitterExportProcessor {
     this.usersFile = new Conf(_.extend({configName: 'users'}, options))
     this.configFile = new Conf(_.extend({configName: 'twitter-config'}, options))
     this.rankFile = new Conf(_.extend({configName: 'rankings'}, options))
+    this.campaignsFile = new Conf(_.extend({configName: 'campaigns'}, options))
 
-    this.client = new Twitter(authParams)
-  }
-
-  getTweetStore() {
-    return this.tweetsFile
+    this.gatewayAPI = new GatewayAPI(authParams)
   }
 
-  getUsersStore() {
-    return this.usersFile
-  }
+  getCampaignsStore(){return this.campaignsFile}
+  getTweetStore() {return this.tweetsFile}
+  getUsersStore() {return this.usersFile}
+  getConfigStore() {return this.configFile}
+  getRankStore() {return this.rankFile}
 
-  getConfigStore() {
-    return this.configFile
-  }
+  setConfUsername(username) {this.saveData(this.configFile, 'username', username)}
+  getConfUsername() {return this.loadData(this.configFile, 'username')}
 
-  getRankStore() {
-    return this.rankFile
-  }
-
-  setConfUsername(username) {
-    this.saveData(this.configFile, 'username', username)
-  }
-  getConfUsername() {
-    return this.loadData(this.configFile, 'username')
-  }
-
-  loadData(file, key) {
-    return file.get(key)
-  }
-  saveData(file, key, value) {
-    return file.set(key, value)
-  }
-  deleteData(file, key) {
-    file.delete(key)
-  }
+  loadData(file, key) {return file.get(key)}
+  saveData(file, key, value) {return file.set(key, value)}
+  deleteData(file, key) {file.delete(key)}
 
   fullTimeline = 400
   numCheckRetweets = 25
@@ -255,8 +239,7 @@ class TwitterExportProcessor {
       log.info('Querying Twitter API for Retweeters of Top tweets.')
       targetTweets.forEach(function(tweet) {
         rt_promises.push(
-          self
-            .getAllRetweetsOfTweet(tweet.id_str)
+          self.gatewayAPI.getAllRetweetsOfTweet(tweet.id_str)
             .then(function(results) {
               if (!_.isUndefined(results)) {
                 retweeters.push(results)
@@ -300,7 +283,7 @@ class TwitterExportProcessor {
     }
 
     // Get Mentions Engagement
-    let mentions = await this.getMentionsTimeline(numMentionsScan)
+    let mentions = await this.gatewayAPI.getMentionsTimeline(numMentionsScan)
     log.info(mentions.length + ' mentions have been found. ')
     log.info('Processing Mentions into user data.')
     mentions.forEach(function(tweet) {
@@ -439,7 +422,7 @@ class TwitterExportProcessor {
     log.info('Starting Tweet Timeline Scan. Lookback is ' + tweetLookback)
     //Scan User Timeline Tweets
     log.info('Grabbing Timeline Tweets from Twitter API...')
-    let tweets = await this.getUserTimelineTweets(tweetLookback, await this.getConfUsername())
+    let tweets = await this.gatewayAPI.getUserTimelineTweets(tweetLookback, await this.getConfUsername())
     log.info(tweets.length + ' Timeline Tweets have been collected.')
     //Store Scanned Tweets
     await this.processTweets(tweets)
@@ -516,7 +499,14 @@ class TwitterExportProcessor {
     let storedUsers = await this.loadData(this.usersFile, 'users')
     return _.isUndefined(storedUsers) ? {} : storedUsers
   }
+  async getStoredCampaigns() {
+    let campaigns = await this.loadData(this.getCampaignsStore(), 'campaigns')
+    return _.isUndefined(campaigns) ? {} : campaigns
+  }
 
+  async storeCampaigns(campaigns) {
+    return this.saveData(this.getCampaignsStore(), 'campaigns', campaigns)
+  }
   async storeLocalUsers() {
     return this.saveData(this.usersFile, 'users', this.users)
   }
@@ -546,260 +536,7 @@ class TwitterExportProcessor {
     return this.saveData(this.tweetsFile, 'tweets', this.tweets)
   }
 
-  //GET followers/list
-  //https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-followers-list
-  FollowersIDsURL = 'https://api.twitter.com/1.1/followers/ids.json'
-  async getAllFollowerIDs() {
-    let params = {count: 25, cursor: -1, stringify_ids: true}
-    let results = await this.allPromiseGet(this.getFollowersIDsURL(), params, true)
-    return results.reduce((a, {ids}) => a.concat(ids), [])
-  }
 
-  async getFollowerIDs(cursor) {
-    console.log('cursor', cursor)
-    cursor = typeof cursor !== 'undefined' ? cursor : -1
-    return this.promiseGet(this.FollowersIDsURL, {count: 25, cursor: cursor, stringify_ids: true})
-  }
-
-  //GET statuses/retweeters/ids
-  //https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-retweeters-ids
-  // Requests / 15-min window (user auth)	75
-  // Requests / 15-min window (app auth)	300
-  RetweetIDsURL = 'https://api.twitter.com/1.1/statuses/retweeters/ids.json'
-  async getAllStatusRetweetIDs(tweet_id) {
-    let params = {count: 100, id: tweet_id}
-    let results = await this.allPromiseGet(this.RetweetIDsURL, params, true)
-    return results.reduce((a, {ids}) => a.concat(ids), [])
-  }
-
-  //GET statuses/retweets/:id
-  //https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-retweets-id
-  //Requests / 15-min window (user auth)	75
-  //Requests / 15-min window (app auth)	300
-  async getAllRetweetsOfTweet(tweet_id) {
-    let params = {count: 100, id: tweet_id}
-    let results = await this.allPromiseGet(this.getRetweetsURL(tweet_id), params)
-    return results
-  }
-
-  getRetweetsURL(tweet_id) {
-    return 'https://api.twitter.com/1.1/statuses/retweets/' + tweet_id + '.json'
-  }
-
-  //Depreciated
-  async getAllUserTimelineTweets(screen_name, count, max_id) {
-    max_id = !_.isUndefined(max_id) ? max_id : ''
-
-    let params = {screen_name: screen_name, count: count, trim_user: true, include_rts: false}
-    if (max_id !== '') {
-      params.max_id = max_id
-    }
-    // log.log(params);
-    let results = await this.allPromiseGet(this.TimelineTweetsURL, params)
-    return results
-  }
-  //Depreciated
-  async getExtraAllUserTimelineTweets(screen_name, count) {
-    let fullResults = []
-    let maxSingle = 200
-    let remaining = count
-    let max_id = ''
-    do {
-      let results = await this.getAllUserTimelineTweets(screen_name, Math.min(maxSingle, count), max_id)
-      // log.log(results);
-      if (_.isUndefined(results)) {
-        log.warn('UNDEFINED RESULTS FOR TIMELINE TWEETS. Gracefully aborting scan...')
-        break
-      }
-      let earliestTweet = _.last(results)
-      max_id = earliestTweet.id_str
-      // log.log(earliestTweet);
-      // log.log(max_id);
-      fullResults = fullResults.concat(results)
-      remaining = remaining - maxSingle
-      // console.log("remaining",remaining);
-    } while (remaining > 0)
-
-    return fullResults
-  }
-
-  RetweetsOfMeURL = 'https://api.twitter.com/1.1/statuses/retweets_of_me.json'
-  async getRetweetsOfMe(count) {
-    let params = {count: count}
-    let results = await this.allPromiseGet(this.RetweetsOfMeURL, params)
-    return results
-  }
-
-  //Depreciated
-  async getUserTimelineTweetsWithRetweeterIDs(screen_name, count) {
-    let timeline_tweets = await this.getAllUserTimelineTweets(screen_name, count)
-    // console.log(timeline_tweets);
-    let tweet_ids = []
-    let obj = this
-    timeline_tweets.forEach(function(element) {
-      if (!_.isUndefined(element)) {
-        element.retweet_ids = obj
-          .getAllStatusRetweetIDs(element.id_str)
-          .then(result => (element.retweet_ids = result))
-      }
-    })
-
-    let promises = timeline_tweets.reduce((a, {retweet_ids}) => a.concat(retweet_ids), [])
-    await Promise.all(promises)
-    let all_retweeters = timeline_tweets
-      .reduce((a, {retweet_ids}) => a.concat(retweet_ids), [])
-      .filter((value, index, self) => self.indexOf(value) === index)
-    let results = {
-      timeline_tweets: timeline_tweets,
-      all_retweeters: all_retweeters,
-      num_retweeters: all_retweeters.length,
-    }
-    return results
-  }
-
-  //GET friendships/lookup
-  // https://developer.twitter.com/en/docs/accounts-and-users/follow-search-get-users/api-reference/get-friendships-lookup
-  // Requests / 15-min window (user auth)	15
-  FriendshipStatusURL = 'https://api.twitter.com/1.1/friendships/lookup.json'
-  async getFriendshipStatus(user_ids) {
-    let arrayChunks = this.chunkArray(user_ids, 100)
-    let chunkPromises = []
-    let chunkResults = []
-    let obj = this
-    arrayChunks.forEach(function(chunk) {
-      let concatChunk = chunk.join(',')
-      let params = {user_id: concatChunk}
-      chunkPromises.push(
-        obj.promiseGet(obj.FriendshipStatusURL, params).then(values => chunkResults.push(values)),
-      )
-    })
-
-    await Promise.all(chunkPromises)
-    let allResults = chunkResults.flat()
-    let followerResults = allResults.filter(user => user.connections.includes('followed_by'))
-    let aggResults = {allResults: allResults, followerResults: followerResults}
-    allResults.forEach(ele => console.log(ele.connections))
-    return aggResults
-  }
-
-  //GET statuses/user_timeline
-  //https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-user_timeline
-  // Requests / 15-min window (user auth)	900
-  // Requests / 15-min window (app auth)	1500
-  // Requests / 24-hour window	100,000
-  // MAX 200 Count results
-  // include_rts means native retweets (You retweeted + their tweet)
-  // 3200 Total Max
-  // Works for any user
-  TimelineTweetsURL = 'https://api.twitter.com/1.1/statuses/user_timeline.json'
-  async getUserTimelineTweets(count, screen_name) {
-    let extraParams = {trim_user: true, include_rts: false}
-    if (!_.isUndefined(screen_name)) {
-      extraParams['screen_name'] = screen_name
-    }
-    return await this.allPromiseGetTimeline(this.TimelineTweetsURL, count, extraParams)
-  }
-
-  //GET statuses/mentions_timeline
-  //https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-mentions_timeline
-  // Requests / 15-min window (user auth)	75
-  // Requests / 24-hour window	100,000
-  // 800 Total Max
-  // Only works for authorized user
-  MentionsTimelineURL = 'https://api.twitter.com/1.1/statuses/mentions_timeline.json'
-  async getMentionsTimeline(count) {
-    return await this.allPromiseGetTimeline(this.MentionsTimelineURL, count)
-  }
-
-  async allPromiseGetTimeline(endpoint, count, extraParams) {
-    let fullResults = []
-    let maxSingle = 200
-    let remaining = count
-    let max_id = ''
-    extraParams = !_.isUndefined(extraParams) ? extraParams : {}
-
-    do {
-      let runParams = {count: Math.min(maxSingle, count)}
-      Object.assign(runParams, extraParams)
-      if (max_id !== '') {
-        runParams.max_id = max_id
-      }
-      let results = await this.allPromiseGet(endpoint, runParams)
-
-      if (_.isUndefined(results)) {
-        log.warn('UNDEFINED RESULTS FOR TIMELINE TWEETS. Gracefully aborting scan...')
-        break
-      }
-
-      let earliestTweet = _.last(results)
-      max_id = earliestTweet.id_str
-      fullResults = fullResults.concat(results)
-      remaining = remaining - maxSingle
-    } while (remaining > 0)
-
-    return fullResults
-  }
-
-  //aggregateCollection => cursor navigation put all results into array
-  async allPromiseGet(endpoint, params, aggregateCollection) {
-    // console.log("aggregateCollection", aggregateCollection);
-    aggregateCollection = typeof aggregateCollection !== 'undefined' ? aggregateCollection : false
-    params.cursor = -1
-    params.stringify_ids = true
-    let errorFound = false
-    let results
-    if (aggregateCollection) {
-      results = []
-    }
-    do {
-      let getResult = await this.promiseGet(endpoint, params).catch(function(error) {
-        errorFound = true
-        if (!_.isUndefined(error[0].message) && !_.isUndefined(error[0].code)) {
-          log.warn(
-            'API ERROR FOR GATEWAY: ' + endpoint + ' CODE:' + error[0].code + ' MESSAGE: ' + error[0].message,
-          )
-        } else {
-          log.warn('UNEXPECTED ERROR', error)
-        }
-      })
-      if (errorFound === false) {
-        // console.log("getResult",getResult);
-        if (aggregateCollection) {
-          results.push(getResult)
-        } else {
-          results = getResult
-        }
-      }
-      params.cursor =
-        typeof getResult !== 'undefined' && typeof getResult.next_cursor_str !== 'undefined'
-          ? getResult.next_cursor_str
-          : 0
-    } while (params.cursor > 0 && errorFound === false)
-    // console.log("results",results);
-    return results
-  }
-
-  async promiseGet(endpoint, params) {
-    return new Promise((resolve, reject) => {
-      this.client.get(endpoint, params, function(error, tweets, response) {
-        if (error) {
-          reject(error)
-        }
-        if (tweets) {
-          resolve(tweets)
-        }
-      })
-    })
-  }
-
-  //https://scotch.io/courses/the-ultimate-guide-to-javascript-algorithms/array-chunking
-  //Really elegant way I found
-  chunkArray(array, size) {
-    if (array.length <= size) {
-      return [array]
-    }
-    return [array.slice(0, size), ...this.chunkArray(array.slice(size), size)]
-  }
 }
 
 module.exports = TwitterExportProcessor
