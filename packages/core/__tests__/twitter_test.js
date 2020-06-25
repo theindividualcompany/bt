@@ -26,7 +26,31 @@ let auth = {
   // console.log(verify)
 
   // await scanner.setConfUsername(user_name)
-  scanner.scan()
+  // scanner.scan()
+
+  let camp_params =
+      {
+        num_batch:1,
+        // whitelist:["femyeda","DevScrape"],
+        // blacklist:["femyeda"],
+        dry_run:true
+      }
+      //if dry_run false, then all dry_runs will be filtered out when calculating a batch, but you can still delete to get rid of unnecessary dry_run data
+      if(!camp_params.dry_run){scanner.clearCampaignDryRuns();}
+
+  let campaign = scanner.getNewCampaign(camp_params).then((v) => {
+
+    v.campaign_users.forEach(e => {
+      console.log("Sending DM to " + e.screen_name)
+      v.sent_to.push(e.id_str);
+      v.message = "DRY RUN MESSAGE"
+    })
+
+    scanner.storeCompletedCampaign(v)
+    // console.log(v)
+  }).catch(err => console.log(err))
+  // let users = await scanner.gatewayAPI.getUsersLookup(["femyeda"])
+  // console.log(users)
   // let userTweetsWithRetweets = await TwitterProc.getUserTimelineTweetsWithRetweeterIDs(user_name, 20);
   // console.log(userTweetsWithRetweets);
   // let userResults = await TwitterProc.getFriendshipStatus(userTweetsWithRetweets.all_retweeters);

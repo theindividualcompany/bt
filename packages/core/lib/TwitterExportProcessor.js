@@ -9,8 +9,9 @@ class TwitterExportProcessor {
   usersFile
   configFile
   rankFile
+  campaignsFile
 
-  client
+  gatewayAPI
 
   tweets
   users
@@ -63,19 +64,13 @@ class TwitterExportProcessor {
   }
 
   fullTimeline = 400
-  numCheckRetweets = 10
+  numCheckRetweets = 25
   fullMentionsLookback = 800
 
   async scan(tweetLookback, retweets, mentionsLookback) {
-    if (_.isUndefined(tweetLookback)) {
-      tweetLookback = this.fullTimeline
-    }
-    if (_.isUndefined(retweets)) {
-      retweets = this.numCheckRetweets
-    }
-    if (_.isUndefined(mentionsLookback)) {
-      mentionsLookback = this.fullMentionsLookback
-    }
+    if (_.isUndefined(tweetLookback)) {tweetLookback = this.fullTimeline}
+    if (_.isUndefined(retweets)) {retweets = this.numCheckRetweets}
+    if (_.isUndefined(mentionsLookback)) {mentionsLookback = this.fullMentionsLookback}
 
     log.info('Starting Twitter Scan...')
     await this.scanTweets(tweetLookback)
@@ -83,6 +78,99 @@ class TwitterExportProcessor {
     await this.buildRankings()
     //Sort by biggest difference between retweet_count and last_retweet_scan_count
   }
+
+  DefaultCampaignBatch = 10;
+  //PARAMETERS:
+  //num_batch: How many users to process in the rankings
+  //whitelist: Only send DMs to these specified users,  ignores rankings, [<screen_name>,<screen_name>],
+  //blacklist: Do not attempt to send DMs to these specified users, filters rankings, [<screen_name>,<screen_name>]
+  //dry_run: Must be false to send DMs, otherwise only output confirming DM would be sent is provided
+  async getNewCampaign(params){
+
+    let rankings = await this.getStoredRankings();
+    let campaigns = await this.getStoredCampaigns();
+
+    if (_.isUndefined(params.num_batch)) {params.num_batch = this.DefaultCampaignBatch}
+    if (_.isUndefined(params.whitelist)) {params.whitelist = []}
+    if (_.isUndefined(params.blacklist)) {params.blacklist = []}
+    if (_.isUndefined(params.dry_run)) {params.dry_run = true}
+
+    //Clear out dry runs (if not dry run)
+    if(!params.dry_run){
+      campaigns = _.pickBy(campaigns, k => {return !k.dry_run})
+    }
+    log.log("Creating New Campaign. Batch Size: " + params.num_batch);
+
+    let users_to_check = [];
+
+    //Check Whitelist
+    if(_.isArray(params.whitelist) && params.whitelist.length > 0){
+      log.log("Campaign Whitelist Detected: " + params.whitelist);
+      users_to_check = _.filter(rankings, k => {return params.whitelist.includes(k.screen_name) })
+    }
+    else{
+      //Filter out users who have already been sent DMs from rankings
+      let sent_to_already = _.flatMap(campaigns, k => {return k.sent_to})
+      console.log("sent_to_total",sent_to_already);
+      rankings = _.filter(rankings, k => {return !sent_to_already.includes(k.id_str)})
+
+      //Check Blacklist
+      if(_.isArray(params.blacklist) && params.blacklist.length > 0){
+        log.log("Campaign Blacklist Detected: " + params.blacklist);
+        rankings = _.filter(rankings, k => {return !params.blacklist.includes(k.screen_name) })
+      }
+
+      //Otherwise Get Batch of Most Engaged
+      // console.log(params.num_batch)
+      users_to_check = rankings.slice(0,params.num_batch)
+
+    }
+
+
+
+    //Check if Follower
+    let user_ids = _.flatMap(users_to_check, k => {return k.id_str})
+
+    log.log("Checking campaign batch for followers...")
+    // console.log(user_friendships);
+
+    let user_friendships = await this.gatewayAPI.getFriendshipStatus(user_ids).catch(err => {this.gatewayAPI.logErrorWarning(err, "TWITTER FOLLOWER API", "PLEASE WAIT 15 MINUTES")});
+
+    let followers = !_.isUndefined(user_friendships) ? user_friendships.followerResults : []
+    let follower_ids = _.flatMap(followers, k => {return k.id_str})
+    users_to_check = _.filter(users_to_check, k => {return follower_ids.includes(k.id_str)})
+    log.log("Of the campaign batch " + users_to_check.length + " are followers.")
+
+    let campaign_params = {
+      num_batch:params.num_batch,
+      whitelist:params.whitelist,
+      blacklist:params.blacklist,
+      campaign_users:users_to_check,
+      created_at: Date.now(),
+      dry_run:params.dry_run,
+      sent_to: [], //Will be array of id_str
+      message: ""  //Message sent via DM
+    }
+
+    return campaign_params;
+  }
+
+  async clearCampaignDryRuns(){
+    let campaigns = await this.getStoredCampaigns();
+    campaigns = _.pickBy(campaigns, k => {return !k.dry_run})
+    return await this.storeCampaigns(campaigns)
+  }
+
+  //Pass in a completed campaign_details with sent_to
+  async storeCompletedCampaign(comp){
+    let campaigns = await this.getStoredCampaigns()
+    if(!_.isUndefined(comp) && !_.isUndefined(comp.created_at)) {
+      log.log("Storing Campaign: " + comp.created_at);
+      campaigns[comp.created_at] = comp
+      await this.storeCampaigns(campaigns)
+    }
+  }
+
 
   getTopRetweetedTweets(tweets, numTweetsReturned) {
     let sortedTweets = _.filter(tweets, function(tweet) {
@@ -102,37 +190,39 @@ class TwitterExportProcessor {
     log.warn('WARNING: Data loss will occur if program exits before data is stored to file.')
     this.users = await this.getStoredUsers()
 
-    let rankedUsers = _.mapValues(this.users, function(k) {
-      let retweet_count = _.isUndefined(k.retweet_count) ? 0 : k.retweet_count
-      let mention_count = _.isUndefined(k.mention_count) ? 0 : k.mention_count
+    let self = this;
 
-      let params = {
-        id_str: k.id_str,
-        rank_score: retweet_count + mention_count,
-        screen_name: k.screen_name,
-        name: k.name ? k.name : '',
-        profile_image_url_https: k.profile_image_url_https ? k.profile_image_url_https : '',
-        verified: k.verified ? k.verified : false,
-        url: k.url ? k.url : '',
-        location: k.location ? k.location : '',
-        description: k.description ? k.description : '',
-        followers: k.followers ? k.followers : 0,
-        retweet_count: retweet_count,
-        mention_count: mention_count,
-      }
+    let rankedUsers = _.mapValues(this.users, function(k) {return self.getRankedUserObjFromTweetUser(k);})
 
-      return params
-    })
-
-    rankedUsers = _.sortBy(rankedUsers, function(k) {
-      return k.rank_score
-    })
+    rankedUsers = _.sortBy(rankedUsers, function(k) {return k.rank_score})
     rankedUsers = _.reverse(rankedUsers)
 
     log.info('Storing Rankings into file...')
     await this.storeRankings(rankedUsers)
       .then(() => log.info('Rankings saved to file.'))
       .catch(err => log.warn('WARNING: ' + err))
+  }
+
+  getRankedUserObjFromTweetUser(k){
+    let retweet_count = _.isUndefined(k.retweet_count) ? 0 : k.retweet_count
+    let mention_count = _.isUndefined(k.mention_count) ? 0 : k.mention_count
+
+    let params = {
+      id_str: k.id_str,
+      rank_score: retweet_count + mention_count,
+      screen_name: k.screen_name,
+      name: k.name ? k.name : '',
+      profile_image_url_https: k.profile_image_url_https ? k.profile_image_url_https : '',
+      verified: k.verified ? k.verified : false,
+      url: k.url ? k.url : '',
+      location: k.location ? k.location : '',
+      description: k.description ? k.description : '',
+      followers: k.followers ? k.followers : 0,
+      retweet_count: retweet_count,
+      mention_count: mention_count,
+    }
+
+    return params
   }
 
   async scanEngagement(numRetweetScan, numMentionsScan) {
@@ -204,14 +294,7 @@ class TwitterExportProcessor {
           updateAggUsers.push(user_id)
           // log.log(tweet.user)
           self.updateLocalUserObjRetweets(user_id, tweet.id_str, tweet.created_at, retweeted_id)
-          self.updateLocalUserObjParam(user_id, 'followers_count', tweet.user.followers_count)
-          self.updateLocalUserObjParam(user_id, 'screen_name', tweet.user.screen_name)
-          self.updateLocalUserObjParam(user_id, 'name', tweet.user.name)
-          self.updateLocalUserObjParam(user_id, 'url', tweet.user.url)
-          self.updateLocalUserObjParam(user_id, 'profile_image_url_https', tweet.user.profile_image_url_https)
-          self.updateLocalUserObjParam(user_id, 'verified', tweet.user.verified)
-          self.updateLocalUserObjParam(user_id, 'location', tweet.user.location)
-          self.updateLocalUserObjParam(user_id, 'description', tweet.user.description)
+          self.updateLocalUserObjFromTweetUser(tweet.user)
         }
       })
     }
@@ -225,21 +308,8 @@ class TwitterExportProcessor {
         let user_id = tweet.user.id_str
         let in_reply_to_status_id_str = tweet.in_reply_to_status_id_str
         updateAggUsers.push(user_id)
-        self.updateLocalUserObjMentions(
-          user_id,
-          tweet.id_str,
-          tweet.created_at,
-          in_reply_to_status_id_str,
-          tweet.text,
-        )
-        self.updateLocalUserObjParam(user_id, 'followers_count', tweet.user.followers_count)
-        self.updateLocalUserObjParam(user_id, 'screen_name', tweet.user.screen_name)
-        self.updateLocalUserObjParam(user_id, 'name', tweet.user.name)
-        self.updateLocalUserObjParam(user_id, 'url', tweet.user.url)
-        self.updateLocalUserObjParam(user_id, 'profile_image_url_https', tweet.user.profile_image_url_https)
-        self.updateLocalUserObjParam(user_id, 'verified', tweet.user.verified)
-        self.updateLocalUserObjParam(user_id, 'location', tweet.user.location)
-        self.updateLocalUserObjParam(user_id, 'description', tweet.user.description)
+        self.updateLocalUserObjMentions(user_id, tweet.id_str, tweet.created_at, in_reply_to_status_id_str, tweet.text,)
+        self.updateLocalUserObjFromTweetUser(tweet.user)
       }
     })
 
@@ -273,6 +343,18 @@ class TwitterExportProcessor {
       this.users[id_str]['retweets'] = {}
       this.users[id_str]['mentions'] = {}
     }
+  }
+
+  updateLocalUserObjFromTweetUser(tweet_user){
+    let user_id = tweet_user.id_str
+    this.updateLocalUserObjParam(user_id, 'followers_count', tweet_user.followers_count)
+    this.updateLocalUserObjParam(user_id, 'screen_name', tweet_user.screen_name)
+    this.updateLocalUserObjParam(user_id, 'name', tweet_user.name)
+    this.updateLocalUserObjParam(user_id, 'url', tweet_user.url)
+    this.updateLocalUserObjParam(user_id, 'profile_image_url_https', tweet_user.profile_image_url_https)
+    this.updateLocalUserObjParam(user_id, 'verified', tweet_user.verified)
+    this.updateLocalUserObjParam(user_id, 'location', tweet_user.location)
+    this.updateLocalUserObjParam(user_id, 'description', tweet_user.description)
   }
 
   updateLocalUserObjAggregates(id_str) {
@@ -454,6 +536,10 @@ class TwitterExportProcessor {
   async getStoredTweets() {
     let storedTweets = await this.loadData(this.tweetsFile, 'tweets')
     return _.isUndefined(storedTweets) ? {} : storedTweets
+  }
+  async getStoredRankings() {
+    let ranking = await this.loadData(this.getRankStore(), 'rankings')
+    return _.isUndefined(ranking) ? {} : ranking
   }
 
   async storeLocalTweets() {
