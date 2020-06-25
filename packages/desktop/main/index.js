@@ -28,12 +28,15 @@ function createWindow() {
   if (auth) {
     let {access_token_key, access_token_secret, consumer_key, consumer_secret} = auth
 
-    mainWindow.bt = bt.configure({
-      access_token_key,
-      access_token_secret,
-      consumer_key,
-      consumer_secret,
-    })
+    mainWindow.bt = bt.configure(
+      {
+        access_token_key,
+        access_token_secret,
+        consumer_key,
+        consumer_secret,
+      },
+      app.getPath('userData'),
+    )
   }
 
   const start = auth ? 'index' : 'login'
