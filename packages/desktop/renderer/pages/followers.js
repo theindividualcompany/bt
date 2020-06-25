@@ -17,10 +17,17 @@ export default () => {
 
   const [followers, setFollowers] = useState({})
   useEffect(() => {
-    ;async () => {
-      setFollowers([])
-    }
-  })
+    ;(async () => {
+      let followers = await ipc.getRankedEngagement()
+      console.log(followers)
+      setFollowers(followers)
+    })()
+  }, [])
+
+  const startScan = () => {
+    const done = ipc.startScan()
+    console.log('done?', done)
+  }
 
   return (
     <>
@@ -29,7 +36,13 @@ export default () => {
         <main>
           <section className='p-4'>
             <div className='bg-gray-100 border border-gray-400 rounded-md min-h-2 p-2'>
-              <button className='w-full py-2 px-2 bg-gray-400 rounded-md'>Build Circles</button>
+              <button
+                className='w-full py-2 px-2 bg-gray-400 rounded-md'
+                onClick={() => {
+                  startScan()
+                }}>
+                Build Circles
+              </button>
             </div>
           </section>
         </main>
