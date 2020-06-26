@@ -52,7 +52,7 @@ const setIntegration = payload => {
       return arg instanceof Error ? reject(arg) : resolve(arg)
     })
 
-    window.send('set-integration-request', payload)
+    window.ipc.send('set-integration-request', payload)
   })
 }
 
