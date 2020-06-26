@@ -16,6 +16,10 @@ const links = [
     href: '/campaigns',
     title: 'Campaigns',
   },
+  {
+    href: '/settings',
+    title: 'Settings',
+  },
 ]
 
 const Navigation = props => {
@@ -30,7 +34,11 @@ const Navigation = props => {
         <nav>
           <Dropdown links={links} active={props.active} />
         </nav>
-        <img className='profile-image rounded-full' src={props.profile.profile_image_url_https} />
+        <img
+          onClick={() => goto('/settings')}
+          className='profile-image rounded-full'
+          src={props.profile.profile_image_url_https}
+        />
       </header>
       <style jsx>{`
         .navigation {

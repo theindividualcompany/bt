@@ -1,17 +1,17 @@
 import React from 'react'
 
-const Screen = ({children}) => {
+const Screen = ({className, children}) => {
   return (
-    <>
-      <div className='screen'>{children}</div>
+    <article className={className}>
+      <div className='screen relative'>{children}</div>
       <style jsx>{`
         .screen {
-          height: 100vh;
+          height: 100%;
           width: 100vw;
           position: relative;
         }
       `}</style>
-    </>
+    </article>
   )
 }
 

@@ -44,12 +44,35 @@ const prepare = (app, window) => {
 
   ipcMain.on('start-ranked-scan-request', async (event, payload) => {
     await window.bt.scanner.scan()
-    event.sender.send('start-ranked-scan-response', 'finished')
+    const rankings = await window.bt.scanner.getStoredRankings()
+    event.sender.send('start-ranked-scan-response', rankings)
   })
 
   ipcMain.on('get-ranked-request', async (event, payload) => {
     const ranked = window.bt.scanner.getRankStore().get('rankings')
     event.sender.send('get-ranked-response', ranked)
+  })
+
+  ipcMain.on('get-settings-request', async (event, payload) => {
+    const settings = await get('settings')
+    event.sender.send('get-settings-response', settings)
+  })
+
+  ipcMain.on('create-campaign-request', async (event, payload) => {
+    const campaign = await window.bt.scanner.getNewCampaign(payload)
+    window.bt.scanner.storeCompletedCampaign(campaign)
+    event.sender.send('create-campaign-response', campaign)
+  })
+
+  ipcMain.on('get-campaigns-request', async (event, payload) => {
+    const campaigns = await window.bt.scanner.getStoredCampaigns()
+    event.sender.send('get-campaigns-response', campaigns)
+  })
+
+  ipcMain.on('set-integration-request', async (event, payload) => {
+    await set(`settings.integrations.${payload.name}`, payload.integration)
+
+    event.sender.send('set-integration-response', true)
   })
 }
 
