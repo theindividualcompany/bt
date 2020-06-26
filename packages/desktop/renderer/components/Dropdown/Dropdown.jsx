@@ -30,7 +30,7 @@ const Dropdown = ({active, links}) => {
       {
         <section
           className={classnames({
-            'dropdown-links': true,
+            'dropdown-links rounded-md border shadow-sm p-2': true,
             hidden: !open,
             block: open,
           })}>
