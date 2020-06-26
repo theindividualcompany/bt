@@ -1,6 +1,7 @@
 const electron = require('electron')
 
 window.ipc = electron.ipcRenderer
+window.shell = electron.shell
 
 try {
   window.appPath = electron.remote.app.getAppPath()
