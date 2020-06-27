@@ -6,6 +6,7 @@ import NewCampaign from '../components/NewCampaign'
 import Profile from '../components/Profile'
 import throttle from 'lodash/throttle'
 import map from 'lodash/map'
+import orderBy from 'lodash/orderBy'
 import find from 'lodash/find'
 import keys from 'lodash/keys'
 import Handlebars from 'handlebars'
@@ -95,7 +96,9 @@ export default () => {
       )
     }
 
-    return map(campaigns, (campaign, key) => {
+    const sorted = orderBy(campaigns, ['created_at'], ['desc'])
+
+    return map(sorted, (campaign, key) => {
       return (
         <div key={key} className='mt-2 border-2 rounded-md cursor-pointer'>
           <article className='w-full py-2 px-4 bg-gray-100 rounded-md'>
