@@ -2,3 +2,5 @@
 node_modules
 .next
 packages/core/__tests__/configs/*.json
+out
+dist
