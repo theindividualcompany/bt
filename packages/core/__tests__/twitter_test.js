@@ -28,7 +28,7 @@ let auth = {
   await scanner.scan()
 
   let camp_params = {
-    num_batch: 5,
+    num_batch: 1,
     // whitelist:["femyeda"],
     // blacklist:["femyeda"],
     message: 'test message',

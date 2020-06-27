@@ -332,6 +332,23 @@ class TwitterGatewayAPI{
         return currUsage;
     }
 
+    cleanApiCalls(){
+        let self = this;
+        let clean_api_calls = _.mapValues(this.api_calls, (o, key) => {
+
+            let recharge_mins = TwitterLimits[key].recharge_mins
+            // console.log("recharge_mins", recharge_mins)
+            let calls = !_.isUndefined(self.api_calls[key]) ? self.api_calls[key] : []
+            // console.log("before_calls", calls)
+            calls = self.filterApiCallsByMins(calls, recharge_mins)
+            // console.log("after_calls", calls)
+
+            return calls;
+
+        })
+        return clean_api_calls
+    }
+
 
     logAPICall(gateway_url){
         let now = new Date();
