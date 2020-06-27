@@ -13,6 +13,10 @@ const links = [
     title: 'Followers',
   },
   {
+    href: '/messages',
+    title: 'Messages',
+  },
+  {
     href: '/campaigns',
     title: 'Campaigns',
   },
