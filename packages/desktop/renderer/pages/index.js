@@ -18,7 +18,7 @@ export default () => {
     <Screen>
       <Navigation active='/index' profile={profile} />
       <main className='h-64 text-center bg-gray-100 border border-gray-400 rounded-md p-2 flex flex-col content-center justify-center'>
-        <p>CIRCLELY COMING SOON</p>
+        <p>bt: better twitter coming soon</p>
       </main>
     </Screen>
   )
