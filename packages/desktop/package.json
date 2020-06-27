@@ -21,7 +21,7 @@
     ],
     "win": {
       "target": [
-        "squirrel"
+        "portable"
       ],
       "icon": "main/static/icons/app-icon.png"
     },
