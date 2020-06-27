@@ -8,6 +8,8 @@ import debounce from 'lodash/debounce'
 import map from 'lodash/map'
 import find from 'lodash/find'
 import keys from 'lodash/keys'
+import Handlebars from 'handlebars'
+
 import {format, formatDistance, formatRelative, subDays} from 'date-fns'
 
 import ipc from '../utils/ipc'
@@ -64,12 +66,14 @@ export default () => {
     }
 
     setProcessing(true)
+    const template = Handlebars.compile(message)
+    const m = template({integration: integration})
+
     let campaign = await ipc.createCampaign({
       num_batch: count,
       message,
       dry_run: true,
     })
-    console.log(campaign)
     setProcessing(false)
   }, 3000)
 
@@ -121,10 +125,9 @@ export default () => {
               )}
             </div>
           </section>
-          {followers && (
+          {followers && integration && (
             <NewCampaign
               enabled={integration ? true : false}
-              variables={{integration: integration}}
               handleSend={handleSend}
               count={followers.length / 8 > 100 ? 100 : Math.ceil(followers.length / 8)}
             />

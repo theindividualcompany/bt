@@ -26,10 +26,10 @@ If you would like to never receive another robot message, respond with â€˜nopeâ€
 
   const [count, setCount] = useState(props.count || 100)
 
-  const prepareSend = () => {
-    const message = editorState.getCurrentContent().getPlainText()
-    const template = Handlebars.compile(message)
-    const m = template(props.variables)
+  const prepareSend = (message, count) => {
+    // const message = editorState.getCurrentContent().getPlainText()
+    // const template = Handlebars.compile(message)
+    // const m = template(props.variables)
 
     props.handleSend(message, count)
   }
@@ -48,7 +48,9 @@ If you would like to never receive another robot message, respond with â€˜nopeâ€
         </div>
         {props.enabled ? (
           <>
-            <button className='mt-4 w-full py-2 px-2 bg-gray-400 rounded-md' onClick={() => prepareSend()}>
+            <button
+              className='mt-4 w-full py-2 px-2 bg-gray-400 rounded-md'
+              onClick={() => prepareSend(editorState.getCurrentContent().getPlainText(), count)}>
               Send
             </button>
             <section className='mb-2 py-2 px-2 bg-gray-100 border border-gray-400'>

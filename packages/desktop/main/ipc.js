@@ -59,7 +59,7 @@ const prepare = (app, window) => {
   })
 
   ipcMain.on('create-campaign-request', async (event, payload) => {
-    const campaign = await window.bt.scanner.getNewCampaign(payload)
+    const campaign = await window.bt.scanner.runCampaign(payload)
     window.bt.scanner.storeCompletedCampaign(campaign)
     event.sender.send('create-campaign-response', campaign)
   })
