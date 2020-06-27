@@ -1,24 +1,22 @@
 import React, {useState, useEffect} from 'react'
 import Router from 'next/router'
-import partition from 'lodash/partition'
+import find from 'lodash/find'
 import classnames from 'classnames'
 
 const Dropdown = ({active, links}) => {
   const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState(null)
-  const [rest, setRest] = useState(null)
 
   useEffect(() => {
-    const parts = partition(links, {href: active})
-    setCurrent(parts[0][0])
-    setRest(parts[1])
+    const current = find(links, {href: active})
+    setCurrent(current)
   }, [])
 
   const goto = href => {
     return Router.replace(href)
   }
 
-  if (!current || !rest) {
+  if (!current) {
     return null
   }
 
@@ -34,14 +32,19 @@ const Dropdown = ({active, links}) => {
             hidden: !open,
             block: open,
           })}>
-          {rest.map(link => {
+          {links.map(link => {
             return (
               <a
                 key={link.href}
                 onClick={() => {
                   goto(link.href)
                 }}>
-                <p key={link.href}>{link.title}</p>
+                <p
+                  className={classnames({
+                    'bg-gray-400': link.href == active,
+                  })}>
+                  {link.title}
+                </p>
               </a>
             )
           })}
