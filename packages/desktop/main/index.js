@@ -9,7 +9,7 @@ const prepareIpc = require('./ipc')
 const {store} = require('./config')
 const bt = require('../../core/lib/core')
 
-app.setName('Circlely')
+app.setName('bt')
 
 function createWindow() {
   // Create the browser window.
@@ -28,15 +28,18 @@ function createWindow() {
   if (auth) {
     let {access_token_key, access_token_secret, consumer_key, consumer_secret} = auth
 
-    mainWindow.bt = bt.configure({
-      access_token_key,
-      access_token_secret,
-      consumer_key,
-      consumer_secret,
-    })
+    mainWindow.bt = bt.configure(
+      {
+        access_token_key,
+        access_token_secret,
+        consumer_key,
+        consumer_secret,
+      },
+      app.getPath('userData'),
+    )
   }
 
-  const start = auth ? 'index' : 'login'
+  const start = auth ? 'followers' : 'login'
   const devPath = `http://localhost:8000/${start}`
   const prodPath = format({
     pathname: resolvePath(`renderer/out/${start}`),
@@ -64,8 +67,8 @@ app.on('ready', async () => {
   }
 
   const mainWindow = createWindow()
-
   prepareIpc(app, mainWindow)
+
   app.on('activate', function() {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.

@@ -16,9 +16,9 @@ export default () => {
 
   return (
     <Screen>
-      <Navigation active='/index' profile={profile} />
+      <Navigation active='/messages' profile={profile} />
       <main className='h-64 text-center bg-gray-100 border border-gray-400 rounded-md p-2 flex flex-col content-center justify-center'>
-        <p>bt: better twitter coming soon</p>
+        <p>Messages Coming Soon</p>
       </main>
     </Screen>
   )
