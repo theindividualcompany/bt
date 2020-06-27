@@ -45,10 +45,10 @@ export default () => {
       handle,
     })
 
-    const indexPath = window.location.href.includes('http')
-      ? '/index'
-      : `${window.appPath}/renderer/out/index.html`
-    Router.replace(indexPath)
+    const startPath = window.location.href.includes('http')
+      ? '/followers'
+      : `${window.appPath}/renderer/out/followers.html`
+    Router.replace(startPath)
   }
 
   return (
