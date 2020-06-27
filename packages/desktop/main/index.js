@@ -9,7 +9,7 @@ const prepareIpc = require('./ipc')
 const {store} = require('./config')
 const bt = require('../../core/lib/core')
 
-app.setName('Circlely')
+app.setName('bt')
 
 function createWindow() {
   // Create the browser window.
