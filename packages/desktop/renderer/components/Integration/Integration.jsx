@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import classnames from 'classnames'
 
-const Integration = ({name, integration, onSubmit}) => {
+const Integration = ({name, integration, onSubmit, logoPath}) => {
   const [open, setOpen] = useState(false)
 
   const [link, setLink] = useState(integration.link)
@@ -10,7 +10,7 @@ const Integration = ({name, integration, onSubmit}) => {
     <section className='integration relative'>
       <button className='' onClick={() => setOpen(!open)}>
         {integration.title}
-        <img style={{height: '24px', width: '24px'}} src={`/${name}.svg`} />
+        <img style={{height: '24px', width: '24px'}} src={logoPath} />
       </button>
       {
         <section

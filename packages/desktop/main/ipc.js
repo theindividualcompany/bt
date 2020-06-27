@@ -1,7 +1,6 @@
 const {ipcMain} = require('electron')
 const {set, get} = require('./config')
-const fetch = require('node-fetch')
-const bt = require('../../core/lib/core')
+const bt = require('@theindividualcompany/bt-core')
 
 const prepare = (app, window) => {
   ipcMain.on('set-login-credentials', async (event, payload) => {

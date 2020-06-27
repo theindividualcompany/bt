@@ -7,6 +7,14 @@ import map from 'lodash/map'
 import ipc from '../utils/ipc'
 
 export default () => {
+  const [assetPath, setAssetPath] = useState('')
+  useEffect(() => {
+    const assetPath = window.location.href.includes('http')
+      ? '/logo.svg'
+      : `${window.appPath}/renderer/out/logo.svg`
+    setAssetPath(assetPath)
+  }, [])
+
   const [profile, setProfile] = useState({})
   const [settings, setSettings] = useState([])
 
@@ -38,9 +46,18 @@ export default () => {
 
   const renderIntegrations = integrations => {
     return map(integrations, (integration, key) => {
+      const integrationLogoPath = window.location.href.includes('http')
+        ? `/${key}.svg`
+        : `${window.appPath}/renderer/out/${key}.svg`
+
       return (
         <div className='pr-4 relative' key={`integration-${key}`}>
-          <Integration name={key} integration={integration} onSubmit={onIntegrationSave} />
+          <Integration
+            name={key}
+            integration={integration}
+            logoPath={integrationLogoPath}
+            onSubmit={onIntegrationSave}
+          />
         </div>
       )
     })
@@ -48,7 +65,7 @@ export default () => {
 
   return (
     <Screen>
-      <Navigation active='/settings' profile={profile} />
+      <Navigation active='/settings' profile={profile} logoPath={assetPath} />
       <main className='p-4'>
         <p className='text-lg font-semibold mb-4'>Settings</p>
         <section className=''>
