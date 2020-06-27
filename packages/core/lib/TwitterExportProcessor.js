@@ -1,3 +1,4 @@
+const logger = require('pino')({prettyPrint:true})
 const log = require('loglevel')
 // Load the full build.
 const _ = require('lodash')
@@ -11,12 +12,15 @@ class TwitterExportProcessor {
   configFile
   rankFile
   campaignsFile
+  api_callsFile
+  messagesFile
 
   gatewayAPI
 
   tweets
   users
   campaigns
+  messages
 
   constructor(authParams, dir) {
     let options = {}
@@ -29,6 +33,9 @@ class TwitterExportProcessor {
     this.configFile = new Conf(_.extend({configName: 'twitter-config'}, options))
     this.rankFile = new Conf(_.extend({configName: 'rankings'}, options))
     this.campaignsFile = new Conf(_.extend({configName: 'campaigns'}, options))
+    this.messagesFile = new Conf(_.extend({configName: 'messages'}, options))
+
+    this.api_callsFile = new Conf(_.extend({configName: 'api_calls'}, options))
 
     this.gatewayAPI = new GatewayAPI(authParams)
   }
@@ -66,7 +73,7 @@ class TwitterExportProcessor {
     file.delete(key)
   }
 
-  fullTimeline = 400
+  fullTimeline = 800
   numCheckRetweets = 25
   fullMentionsLookback = 800
 
@@ -132,7 +139,7 @@ class TwitterExportProcessor {
       let sent_to_already = _.flatMap(campaigns, k => {
         return k.sent_to
       })
-      console.log('sent_to_total', sent_to_already)
+      // console.log('sent_to_total', sent_to_already)
       rankings = _.filter(rankings, k => {
         return !sent_to_already.includes(k.id_str)
       })
@@ -144,31 +151,20 @@ class TwitterExportProcessor {
           return !params.blacklist.includes(k.screen_name)
         })
       }
+      //Get Followers from rankings
+      users_to_check = await this.getFollowersBatchFromRankings(rankings, params.num_batch);
 
       //Otherwise Get Batch of Most Engaged
       // console.log(params.num_batch)
-      users_to_check = rankings.slice(0, params.num_batch)
+      users_to_check = users_to_check.slice(0, params.num_batch)
     }
 
-    //Check if Follower
-    let user_ids = _.flatMap(users_to_check, k => {
-      return k.id_str
-    })
+
 
     log.log('Checking campaign batch for followers...')
     // console.log(user_friendships);
 
-    let user_friendships = await this.gatewayAPI.getFriendshipStatus(user_ids).catch(err => {
-      this.gatewayAPI.logErrorWarning(err, 'TWITTER FOLLOWER API', 'PLEASE WAIT 15 MINUTES')
-    })
 
-    let followers = !_.isUndefined(user_friendships) ? user_friendships.followerResults : []
-    let follower_ids = _.flatMap(followers, k => {
-      return k.id_str
-    })
-    users_to_check = _.filter(users_to_check, k => {
-      return follower_ids.includes(k.id_str)
-    })
     log.log('Of the campaign batch ' + users_to_check.length + ' are followers.')
 
     let campaign_params = {
@@ -185,6 +181,106 @@ class TwitterExportProcessor {
     return campaign_params
   }
 
+  //PARAMS
+    // num_batch: 10,
+    // whitelist:["femyeda","DevScrape"],
+    // blacklist:["femyeda"],
+    // message: 'this message',
+    // dry_run: true,
+  asyncFunc(e) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => resolve(e), 1000);
+      console.log(e + " completed DM");
+    });
+  }
+
+  async runCampaign(params){
+    //if dry_run false, then all dry_runs will be filtered out when calculating a batch, but you can still delete to get rid of unnecessary dry_run data
+    await this.pullStoredAPICalls();
+    if (!params.dry_run) {await this.clearCampaignDryRuns()}
+
+    //Get New Campaign
+    let v = await this.getNewCampaign(params).catch(err => console.log(err))
+
+    //Send DMs Out
+    let arr = []
+
+    let c_users = _.clone(v.campaign_users);
+
+    while(c_users.length > 0){
+      let user = _.head(c_users);
+      let args = {recipient_id:user.id_str, text:params.message}
+      logger.info(`Sending DM "${args.text}" to ${user.screen_name}`)
+      let result = await this.gatewayAPI.sendDM(args, params.dry_run);
+
+      let messageInfo = {
+        id_str:user.id_str,
+        result:result,
+        message:params.message,
+        screen_name: user.screen_name,
+        dry_run: params.dry_run
+      }
+
+      arr.push(messageInfo)
+      c_users.shift()
+    }
+
+
+    // log.log(arr)
+    arr = _.filter(arr, e => {return !_.isUndefined(e.result.id)})
+    v.sent_to = _.map(arr,'id_str')
+
+    this.messages = await this.getStoredMessages()
+    this.messages = this.messages.concat(arr)
+    await this.storeLocalMessages()
+
+
+    //Store Results to DB
+    await this.storeCompletedCampaign(v)
+    await this.storeLocalAPICalls()
+  }
+
+  async getFollowersBatchFromRankings(users_to_check, num_batch) {
+    //Check if Follower
+    let user_ids = _.flatMap(users_to_check, k => {
+      return k.id_str
+    })
+    let follower_ids_agg = [];
+
+    let arrayChunks = this.gatewayAPI.chunkArray(user_ids, 100)
+
+    let errorFound = false;
+
+    while (arrayChunks.length > 0 && !errorFound && follower_ids_agg.length < num_batch)
+    {
+
+
+      let user_friendships = await this.gatewayAPI.getFriendshipStatus(arrayChunks.shift()).catch(err => {
+        this.gatewayAPI.logErrorWarning(err, 'TWITTER FOLLOWER API', 'PLEASE WAIT 15 MINUTES')
+        return this.gatewayAPI.getError(err)
+      })
+
+
+      //Stop if Rate Limit Reached
+      if(!_.isUndefined(user_friendships) && !_.isUndefined(user_friendships.message)){break;}
+
+      let followers = !_.isUndefined(user_friendships) ? user_friendships.followerResults : []
+      let follower_ids = _.flatMap(followers, k => {
+        return k.id_str
+     })
+      follower_ids_agg = follower_ids_agg.concat(follower_ids)
+
+
+  }
+
+    users_to_check = _.filter(users_to_check, k => {
+      return follower_ids_agg.includes(k.id_str)
+    })
+
+    return users_to_check
+  }
+
+
   async clearCampaignDryRuns() {
     let campaigns = await this.getStoredCampaigns()
     campaigns = _.pickBy(campaigns, k => {
@@ -196,7 +292,7 @@ class TwitterExportProcessor {
   //Pass in a completed campaign_details with sent_to
   async storeCompletedCampaign(comp) {
     let campaigns = await this.getStoredCampaigns()
-    if (!_.isUndefined(comp) && !_.isUndefined(comp.created_at)) {
+    if (!_.isUndefined(comp) && !_.isUndefined(comp.created_at) && comp.campaign_users.length > 0) {
       log.log('Storing Campaign: ' + comp.created_at)
       campaigns[comp.created_at] = comp
       await this.storeCampaigns(campaigns)
@@ -252,7 +348,7 @@ class TwitterExportProcessor {
       url: k.url ? k.url : '',
       location: k.location ? k.location : '',
       description: k.description ? k.description : '',
-      followers: k.followers ? k.followers : 0,
+      followers: k.followers_count ? k.followers_count : 0,
       retweet_count: retweet_count,
       mention_count: mention_count,
     }
@@ -262,6 +358,8 @@ class TwitterExportProcessor {
 
   async scanEngagement(numRetweetScan, numMentionsScan) {
     log.info('Scanning Retweeters.')
+
+    await this.pullStoredAPICalls();
 
     log.info('Loading Stored Timeline Tweets From File into memory.')
     log.warn('WARNING: Data loss will occur if program exits before data is stored to file.')
@@ -336,6 +434,7 @@ class TwitterExportProcessor {
 
     // Get Mentions Engagement
     let mentions = await this.gatewayAPI.getMentionsTimeline(numMentionsScan)
+    // mentions = []
     log.info(mentions.length + ' mentions have been found. ')
     log.info('Processing Mentions into user data.')
     mentions.forEach(function(tweet) {
@@ -375,6 +474,8 @@ class TwitterExportProcessor {
     await this.storeLocalTweets()
       .then(() => log.info('Timeline Tweets saved to file.'))
       .catch(err => log.warn('WARNING: ' + err))
+
+    await this.storeLocalAPICalls();
   }
 
   setLocalUserObjIfNotThere(id_str) {
@@ -476,6 +577,8 @@ class TwitterExportProcessor {
   }
 
   async scanTweets(tweetLookback) {
+    await this.pullStoredAPICalls();
+
     tweetLookback = !_.isUndefined(tweetLookback) ? tweetLookback : this.fullTimeline
     log.info('Starting Tweet Timeline Scan. Lookback is ' + tweetLookback)
     //Scan User Timeline Tweets
@@ -484,6 +587,7 @@ class TwitterExportProcessor {
     log.info(tweets.length + ' Timeline Tweets have been collected.')
     //Store Scanned Tweets
     await this.processTweets(tweets)
+    await this.storeLocalAPICalls();
   }
 
   async processTweets(tweets) {
@@ -557,6 +661,12 @@ class TwitterExportProcessor {
     let storedUsers = await this.loadData(this.usersFile, 'users')
     return _.isUndefined(storedUsers) ? {} : storedUsers
   }
+
+
+  async pullStoredAPICalls() {
+    let storedCalls = await this.loadData(this.api_callsFile, 'api_calls')
+    this.gatewayAPI.api_calls =  _.isUndefined(storedCalls) ? {} : storedCalls
+  }
   async getStoredCampaigns() {
     let campaigns = await this.loadData(this.getCampaignsStore(), 'campaigns')
     return _.isUndefined(campaigns) ? {} : campaigns
@@ -567,6 +677,13 @@ class TwitterExportProcessor {
   }
   async storeLocalUsers() {
     return this.saveData(this.usersFile, 'users', this.users)
+  }
+  async storeLocalMessages() {
+    return this.saveData(this.messagesFile, 'messages', this.messages)
+  }
+
+  async storeLocalAPICalls() {
+    return this.saveData(this.api_callsFile, 'api_calls', this.gatewayAPI.cleanApiCalls())
   }
 
   async storeRankings(rankings) {
@@ -588,6 +705,16 @@ class TwitterExportProcessor {
   async getStoredRankings() {
     let ranking = await this.loadData(this.getRankStore(), 'rankings')
     return _.isUndefined(ranking) ? {} : ranking
+  }
+  async getStoredMessages() {
+    let messages = await this.loadData(this.messagesFile, 'messages')
+    return _.isUndefined(messages) ? [] : messages
+  }
+
+  async cleanStoredApiCalls(){
+    await this.pullStoredAPICalls()
+    this.gatewayAPI.cleanApiCalls()
+    await this.storeLocalAPICalls()
   }
 
   async storeLocalTweets() {
