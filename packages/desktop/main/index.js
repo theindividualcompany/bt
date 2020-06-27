@@ -1,6 +1,6 @@
 const {format} = require('url')
 
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, nativeImage} = require('electron')
 const isDev = require('electron-is-dev')
 const prepareNext = require('electron-next')
 const {resolve: resolvePath} = require('app-root-path')
@@ -10,6 +10,8 @@ const {store} = require('./config')
 const bt = require('@theindividualcompany/bt-core')
 
 app.setName('bt')
+const appIcon = nativeImage.createFromPath(resolvePath(`./main/static/icons/app-icon.png`))
+app.dock.setIcon(appIcon)
 
 function createWindow() {
   // Create the browser window.
@@ -19,6 +21,7 @@ function createWindow() {
     maxWidth: 500,
     minWidth: 360,
     minHeight: 700,
+    icon: appIcon,
     webPreferences: {
       preload: path.join(app.getAppPath(), 'main/static/preload.js'),
     },
@@ -65,6 +68,8 @@ app.on('ready', async () => {
   } catch (e) {
     console.log(e)
   }
+
+  app.dock.show()
 
   const mainWindow = createWindow()
   prepareIpc(app, mainWindow)
