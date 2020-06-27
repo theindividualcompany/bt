@@ -4,7 +4,7 @@ import Screen from '../components/Screen'
 import Navigation from '../components/Navigation'
 import NewCampaign from '../components/NewCampaign'
 import Profile from '../components/Profile'
-import debounce from 'lodash/debounce'
+import throttle from 'lodash/throttle'
 import map from 'lodash/map'
 import find from 'lodash/find'
 import keys from 'lodash/keys'
@@ -68,7 +68,7 @@ export default () => {
     })()
   }, [])
 
-  const handleSend = debounce(async (message, count) => {
+  const handleSend = throttle(async (message, count) => {
     if (processing) {
       return
     }
@@ -82,6 +82,7 @@ export default () => {
       message,
       dry_run: true,
     })
+
     setProcessing(false)
   }, 3000)
 
@@ -113,6 +114,19 @@ export default () => {
     })
   }, areEqual)
 
+  const renderNewCampaign = (followers, integration) => {
+    if (!followers || !integration) {
+      return null
+    }
+    return (
+      <NewCampaign
+        enabled={integration ? true : false}
+        handleSend={handleSend}
+        count={followers.length / 8 > 100 ? 100 : Math.ceil(followers.length / 8)}
+      />
+    )
+  }
+
   return (
     <>
       <Screen>
@@ -133,12 +147,13 @@ export default () => {
               )}
             </div>
           </section>
-          {followers && integration && (
-            <NewCampaign
-              enabled={integration ? true : false}
-              handleSend={handleSend}
-              count={followers.length / 8 > 100 ? 100 : Math.ceil(followers.length / 8)}
-            />
+          {processing ? (
+            <div className='absolute top-0 left-0 overflow-hidden flex flex-col text-center content-center justify-center bg-gray-100 top-0 left-0 h-screen w-full z-50'>
+              <p>Send messages</p>
+              <p>This might take a few seconds...</p>
+            </div>
+          ) : (
+            renderNewCampaign(followers, integration)
           )}
           <section className='mt-4 p-4'>
             <p className='text-md text-gray-600 font-semibold'>Previous Campaigns</p>
