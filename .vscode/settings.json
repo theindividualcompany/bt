@@ -16,6 +16,7 @@
     ".git": true,
     "**/**/renderer/out": true,
     "**/**/renderer/.next": true,
+    "**/**/main/dist": true,
     ".eslintcache": true,
     "app/dist": true,
     "app/main.prod.js": true,
