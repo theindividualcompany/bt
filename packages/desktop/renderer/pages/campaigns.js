@@ -19,6 +19,14 @@ export default () => {
     return Router.replace(href)
   }
 
+  const [assetPath, setAssetPath] = useState('')
+  useEffect(() => {
+    const assetPath = window.location.href.includes('http')
+      ? '/logo.svg'
+      : `${window.appPath}/renderer/out/logo.svg`
+    setAssetPath(assetPath)
+  }, [])
+
   function areEqual(prevProps, nextProps) {
     return prevProps == nextProps ? false : true
   }
@@ -108,7 +116,7 @@ export default () => {
   return (
     <>
       <Screen>
-        <Navigation active='/campaigns' profile={profile} />
+        <Navigation active='/campaigns' profile={profile} logoPath={assetPath} />
         <main className=''>
           <section className='mt-4 p-4'>
             <div className='flex flex-col text-center content-center justify-center bg-red-100 h-16 w-full'>

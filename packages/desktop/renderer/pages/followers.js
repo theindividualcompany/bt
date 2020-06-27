@@ -12,6 +12,14 @@ export default () => {
     return prevProps == nextProps ? false : true
   }
 
+  const [assetPath, setAssetPath] = useState('')
+  useEffect(() => {
+    const assetPath = window.location.href.includes('http')
+      ? '/logo.svg'
+      : `${window.appPath}/renderer/out/logo.svg`
+    setAssetPath(assetPath)
+  }, [])
+
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
 
@@ -89,7 +97,7 @@ export default () => {
   return (
     <>
       <Screen className=''>
-        <Navigation active='/followers' profile={profile} />
+        <Navigation active='/followers' profile={profile} logoPath={assetPath} />
         <main>
           <section className='p-4'>
             <div className='bg-gray-100 border border-gray-400 rounded-md min-h-2 p-2'>

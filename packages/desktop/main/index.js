@@ -7,7 +7,7 @@ const {resolve: resolvePath} = require('app-root-path')
 const path = require('path')
 const prepareIpc = require('./ipc')
 const {store} = require('./config')
-const bt = require('../../core/lib/core')
+const bt = require('@theindividualcompany/bt-core')
 
 app.setName('bt')
 
@@ -42,7 +42,7 @@ function createWindow() {
   const start = auth ? 'followers' : 'login'
   const devPath = `http://localhost:8000/${start}`
   const prodPath = format({
-    pathname: resolvePath(`renderer/out/${start}`),
+    pathname: resolvePath(`renderer/out/${start}.html`),
     protocol: 'file:',
     slashes: true,
   })

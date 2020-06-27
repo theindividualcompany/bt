@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import Router from 'next/router'
 import ipc from '../utils/ipc'
 
@@ -8,6 +8,14 @@ export default () => {
   const [consumer_key, setConsumerKey] = useState('')
   const [consumer_secret, setConsumerSecret] = useState('')
   const [handle, setHandle] = useState('')
+
+  const [assetPath, setAssetPath] = useState('')
+  useEffect(() => {
+    const assetPath = window.location.href.includes('http')
+      ? '/logo.svg'
+      : `${window.appPath}/renderer/out/logo.svg`
+    setAssetPath(assetPath)
+  }, [])
 
   const validateKeyLogin = () => {
     if (
@@ -46,7 +54,7 @@ export default () => {
   return (
     <article>
       <header>
-        <img src='/logo.svg' />
+        <img src={assetPath} />
       </header>
       {/* <p>Better Twitter</p> */}
 

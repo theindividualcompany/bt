@@ -1,7 +1,6 @@
 import React from 'react'
 import Router from 'next/router'
 import Dropdown from '../Dropdown'
-import Profile from '../Profile'
 
 const links = [
   {
@@ -34,7 +33,7 @@ const Navigation = props => {
   return (
     <>
       <header className='navigation border-b border-gray-200 z-50'>
-        <img onClick={() => goto('/index')} src='/logo.svg' />
+        <img onClick={() => goto('/index')} src={props.logoPath} />
         <nav>
           <Dropdown links={links} active={props.active} />
         </nav>

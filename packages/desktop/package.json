@@ -55,6 +55,7 @@
     "tailwindcss": "^1.4.6"
   },
   "dependencies": {
+    "@theindividualcompany/bt-core": "file:./../core",
     "app-root-path": "^3.0.0",
     "classnames": "^2.2.6",
     "date-fns": "^2.14.0",

@@ -6,6 +6,13 @@ import ipc from '../utils/ipc'
 
 export default () => {
   const [profile, setProfile] = useState({})
+  const [assetPath, setAssetPath] = useState('')
+  useEffect(() => {
+    const assetPath = window.location.href.includes('http')
+      ? '/logo.svg'
+      : `${window.appPath}/renderer/out/logo.svg`
+    setAssetPath(assetPath)
+  }, [])
 
   useEffect(() => {
     ;(async () => {
@@ -16,7 +23,7 @@ export default () => {
 
   return (
     <Screen>
-      <Navigation active='/messages' profile={profile} />
+      <Navigation active='/messages' profile={profile} logoPath={assetPath} />
       <main className='h-64 text-center bg-gray-100 border border-gray-400 rounded-md p-2 flex flex-col content-center justify-center'>
         <p>Messages Coming Soon</p>
       </main>
