@@ -1,5 +1,6 @@
 require('dotenv').config()
 const log = require('loglevel')
+const logger = require('pino')({prettyPrint:true})
 
 const core = require('../lib/core')
 let auth = {
@@ -11,7 +12,7 @@ let auth = {
 
 ;(async function() {
   log.setLevel('trace')
-  let user_name = 'femyeda'
+  let user_name = 'DevScrape'
 
   const bt = core.configure(auth, './configs')
   const scanner = bt.scanner
@@ -22,38 +23,26 @@ let auth = {
 
   // let verify = await scanner.getVerifyCredentials();
   // console.log(verify)
-
-  // await scanner.setConfUsername(user_name)
-  // scanner.scan()
+  // scanner.pullStoredAPICalls();
+  await scanner.setConfUsername(user_name)
+  await scanner.scan()
 
   let camp_params = {
-    num_batch: 10,
-    // whitelist:["femyeda","DevScrape"],
+    num_batch: 1,
+    // whitelist:["femyeda"],
     // blacklist:["femyeda"],
-    message: 'this message',
+    message: 'test message',
     dry_run: true,
   }
-  //if dry_run false, then all dry_runs will be filtered out when calculating a batch, but you can still delete to get rid of unnecessary dry_run data
-  if (!camp_params.dry_run) {
-    scanner.clearCampaignDryRuns()
-  }
 
-  let campaign = scanner
-    .getNewCampaign(camp_params)
-    .then(v => {
-      if (v.dry_run) {
-        console.log('dray run')
-        v.campaign_users.forEach(e => {
-          console.log(`Sending DM "${v.message}" to ${e.screen_name}`)
-          v.sent_to.push(e.id_str)
-          // v.message = "DRY RUN MESSAGE"
-        })
-      }
+  // let result =scanner.gatewayAPI.timeComp();
+  await scanner.runCampaign(camp_params)
+  // console.log(result)
+  // logger.info(scanner.gatewayAPI.getCurrentUsage())
+  // let test_dm = {recipient_id: "340655814", text:"duuuudddeee", dry_run: true}
+  // let result = await scanner.gatewayAPI.sendDM(test_dm)
+  // console.log(result);
 
-      scanner.storeCompletedCampaign(v)
-      // console.log(v)
-    })
-    .catch(err => console.log(err))
   // let users = await scanner.gatewayAPI.getUsersLookup(["femyeda"])
   // console.log(users)
   // let userTweetsWithRetweets = await TwitterProc.getUserTimelineTweetsWithRetweeterIDs(user_name, 20);
