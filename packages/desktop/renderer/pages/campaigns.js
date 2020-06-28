@@ -71,7 +71,7 @@ export default () => {
     })()
   }, [])
 
-  const handleSend = throttle(async (message, count) => {
+  const handleSend = throttle(async (message, count, dryRun) => {
     if (processing) {
       return
     }
@@ -83,7 +83,7 @@ export default () => {
     let campaign = await ipc.createCampaign({
       num_batch: count,
       message: m,
-      dry_run: true,
+      dry_run: dryRun,
     })
 
     setProcessing(false)
@@ -134,11 +134,13 @@ export default () => {
       return null
     }
     return (
-      <NewCampaign
-        enabled={integration ? true : false}
-        handleSend={handleSend}
-        count={followers.length / 8 > 100 ? 100 : Math.ceil(followers.length / 8)}
-      />
+      <>
+        <NewCampaign
+          enabled={integration ? true : false}
+          handleSend={handleSend}
+          count={followers.length / 8 > 100 ? 100 : Math.ceil(followers.length / 8)}
+        />
+      </>
     )
   }
 
