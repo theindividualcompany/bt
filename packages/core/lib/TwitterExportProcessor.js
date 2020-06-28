@@ -5,6 +5,8 @@ const _ = require('lodash')
 const Twitter = require('twitter')
 const Conf = require('conf')
 const GatewayAPI = require('./TwitterGatewayAPI')
+var jsonexport = require('jsonexport');
+var fs = require('fs');
 
 class TwitterExportProcessor {
   tweetsFile
@@ -683,11 +685,26 @@ class TwitterExportProcessor {
   }
 
   async storeLocalAPICalls() {
-    return this.saveData(this.api_callsFile, 'api_calls', this.gatewayAPI.cleanApiCalls())
+    await this.saveData(this.api_callsFile, 'api_calls', this.gatewayAPI.cleanApiCalls())
+    return this.saveData(this.api_callsFile, 'api_calls_usage', this.gatewayAPI.getCurrentUsage())
   }
 
   async storeRankings(rankings) {
     return this.saveData(this.rankFile, 'rankings', rankings)
+  }
+  //Export To CSV File
+  async exportRankingsCSVFile(fileName){
+    let rankings = await this.getStoredRankings()
+    var options = {
+      forceTextDelimiter: true
+    }
+
+    jsonexport(rankings, options,function(err,csv){
+      if(err) return console.log(err);
+      fs.writeFile(fileName, csv, function(err){
+        if (err) return console.log(err);
+      })
+    });
   }
 
   async clearAllStoredTweets() {

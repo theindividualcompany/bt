@@ -37,6 +37,10 @@ let auth = {
 
   // let result =scanner.gatewayAPI.timeComp();
   await scanner.runCampaign(camp_params)
+
+  // await scanner.exportRankingsCSVFile("rankings.csv");
+  await bt.export_rankings_to_file("rankings.csv");
+
   // console.log(result)
   // logger.info(scanner.gatewayAPI.getCurrentUsage())
   // let test_dm = {recipient_id: "340655814", text:"duuuudddeee", dry_run: true}
