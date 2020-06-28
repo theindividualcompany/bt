@@ -86,6 +86,9 @@ export default () => {
       dry_run: dryRun,
     })
 
+    const campaigns = await ipc.getCampaigns()
+    setCampaigns(campaigns)
+
     setProcessing(false)
   }, 1000)
 
