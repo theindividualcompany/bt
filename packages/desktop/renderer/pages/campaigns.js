@@ -149,10 +149,12 @@ export default () => {
       <Screen>
         <Navigation active='/campaigns' profile={profile} logoPath={assetPath} />
         <main className=''>
-          <section className='mt-4 p-4'>
-            <div className='flex flex-col text-center content-center justify-center bg-red-100 h-16 w-full'>
+          <section className='mt-2 px-4'>
+            <div className='flex flex-col text-center content-center justify-center bg-red-100 p-4 min-h-16 w-full'>
               {integration ? (
-                <p>Using {integration.title}</p>
+                <>
+                  <p>Using {integration.title}</p>
+                </>
               ) : (
                 <a
                   className='cursor-pointer'
@@ -172,17 +174,13 @@ export default () => {
           ) : (
             renderNewCampaign(followers, integration)
           )}
-          <section className='mt-4 p-4'>
+          <section className='mt-2 px-4'>
             <p className='text-md text-gray-600 font-semibold'>Previous Campaigns</p>
             <RenderCampaigns campaigns={campaigns} />
           </section>
         </main>
         {selectedCampaign && isModalOpen && (
-          <Modal
-            isOpen={isModalOpen}
-            onRequestClose={() => setModelOpen(false)}
-            // style={customStyles}
-            contentLabel='Campaign Info'>
+          <Modal isOpen={isModalOpen} onRequestClose={() => setModelOpen(false)} contentLabel='Campaign Info'>
             <section>
               <p className='text-md text-gray-600 font-semibold'>Campaign</p>
               <p className='text-md text-gray-800'>
@@ -193,7 +191,7 @@ export default () => {
               </p>
               {map(selectedCampaign.campaign_users, user => {
                 return (
-                  <div className='mt-2'>
+                  <div key={user.screen_name} className='mt-2'>
                     <Profile
                       title={`@${user.screen_name}`}
                       subtitle={user.name}
@@ -203,7 +201,6 @@ export default () => {
                   </div>
                 )
               })}
-              {/* <p className='text-md text-gray-700'>{format(new Date(Number(selectedCampaign.created_at)))}</p> */}
             </section>
           </Modal>
         )}

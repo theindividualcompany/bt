@@ -4,8 +4,7 @@ import {Editor, EditorState, ContentState} from 'draft-js'
 const NewCampaign = props => {
   const defaultCampaign = `Hey 👋  It’s me in robot form. 
 
-My human wants you to know they post content on {{integration.link}} and would like you to subscribe.
-`
+My human wants you to know they post content on {{integration.link}} and would like you to subscribe.`
 
   const [editorState, setEditorState] = useState(
     EditorState.createWithContent(ContentState.createFromText(defaultCampaign)),
@@ -32,7 +31,6 @@ My human wants you to know they post content on {{integration.link}} and would l
             ref={editor}
             key='campaign-editor'
             editorState={editorState}
-            readOnly
             onChange={editorState => setEditorState(editorState)}
           />
         </div>
