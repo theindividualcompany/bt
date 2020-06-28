@@ -6,12 +6,14 @@ const prepareNext = require('electron-next')
 const {resolve: resolvePath} = require('app-root-path')
 const path = require('path')
 const prepareIpc = require('./ipc')
-const {store} = require('./config')
+const {store, isMacOS,isWindows} = require('./config')
 const bt = require('@theindividualcompany/bt-core')
 
 app.setName('bt')
 const appIcon = nativeImage.createFromPath(resolvePath(`./main/static/icons/app-icon.png`))
-app.dock.setIcon(appIcon)
+if(isMacOS) {
+  app.dock.setIcon(appIcon)
+}
 
 function createWindow() {
   // Create the browser window.
@@ -68,9 +70,9 @@ app.on('ready', async () => {
   } catch (e) {
     console.log(e)
   }
-
-  app.dock.show()
-
+  if(isMacOS) {
+    app.dock.show()
+  }
   const mainWindow = createWindow()
   prepareIpc(app, mainWindow)
 

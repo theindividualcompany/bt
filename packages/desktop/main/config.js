@@ -53,6 +53,8 @@ const initializeIntegrations = () => {
 initializeIntegrations()
 
 exports.store = getStore()
+exports.isMacOS = isMacOS
+exports.isWindows = isWindows
 
 exports.set = async (key, data) => {
   const store = getStore()
