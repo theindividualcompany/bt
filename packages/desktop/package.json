@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "build": "yarn build-renderer",
-    "build-app": "electron-builder",
+    "build-app": "electron-builder -mw",
     "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
     "pack": "yarn build && yarn build-app --dir",
     "dist": "yarn build && yarn build-app"
