@@ -25,13 +25,10 @@ If you would like to never receive another robot message, respond with â€˜nopeâ€
   }
 
   const [count, setCount] = useState(props.count || 100)
+  const [isDryRun, setDryRun] = useState(true)
 
-  const prepareSend = (message, count) => {
-    // const message = editorState.getCurrentContent().getPlainText()
-    // const template = Handlebars.compile(message)
-    // const m = template(props.variables)
-
-    props.handleSend(message, count)
+  const prepareSend = (message, count, dryRun) => {
+    props.handleSend(message, count, dryRun)
   }
 
   return (
@@ -48,9 +45,24 @@ If you would like to never receive another robot message, respond with â€˜nopeâ€
         </div>
         {props.enabled ? (
           <>
+            <div className='flex items-center'>
+              <input
+                id='dry_run'
+                name='dryRun'
+                type='checkbox'
+                checked={isDryRun}
+                onChange={e => {
+                  setDryRun(e.target.checked)
+                }}
+                className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
+              />
+              <label htmlFor='dry_run' className='ml-2 block text-sm leading-5 text-gray-900'>
+                Dry Run?
+              </label>
+            </div>
             <button
               className='mt-4 w-full py-2 px-2 bg-gray-400 rounded-md'
-              onClick={() => prepareSend(editorState.getCurrentContent().getPlainText(), count)}>
+              onClick={() => prepareSend(editorState.getCurrentContent().getPlainText(), count, isDryRun)}>
               Send
             </button>
             <section className='mb-2 py-2 px-2 bg-gray-100 border border-gray-400'>
