@@ -10,10 +10,12 @@ import orderBy from 'lodash/orderBy'
 import find from 'lodash/find'
 import keys from 'lodash/keys'
 import Handlebars from 'handlebars'
-
 import {format, formatDistance, formatRelative, subDays} from 'date-fns'
+import Modal from 'react-modal'
 
 import ipc from '../utils/ipc'
+
+Modal.setAppElement('#__next')
 
 export default () => {
   const goto = href => {
@@ -76,16 +78,23 @@ export default () => {
 
     setProcessing(true)
     const template = Handlebars.compile(message)
-    const m = template({integration: integration})
+    const m = template({integration})
 
     let campaign = await ipc.createCampaign({
       num_batch: count,
-      message,
+      message: m,
       dry_run: true,
     })
 
     setProcessing(false)
-  }, 3000)
+  }, 1000)
+
+  const [isModalOpen, setModelOpen] = useState(false)
+  const [selectedCampaign, setSelectedCampaign] = useState(null)
+  const openCampaignInfo = campaign => {
+    setSelectedCampaign(campaign)
+    setModelOpen(true)
+  }
 
   const RenderCampaigns = React.memo(({campaigns}) => {
     if (keys(campaigns).length == 0) {
@@ -100,19 +109,22 @@ export default () => {
 
     return map(sorted, (campaign, key) => {
       return (
-        <div key={key} className='mt-2 border-2 rounded-md cursor-pointer'>
-          <article className='w-full py-2 px-4 bg-gray-100 rounded-md'>
+        <article
+          key={key}
+          className='mt-2 border-2 rounded-md cursor-pointer'
+          onClick={() => openCampaignInfo(campaign)}>
+          <div className='w-full py-2 px-4 bg-gray-100 rounded-md'>
             <section className='profile flex flex-row justify-between content-center'>
-              <section className='flex flex-col w-4/5'>
-                {/* <p>{title} | {subtitle}</p> */}
+              <section className='flex flex-col w-2/3'>
+                {campaign.dry_run && <p>dry run</p>}
                 <p>Sent to {campaign.num_batch} followers</p>
               </section>
               <section className=''>
-                <p>{formatDistance(new Date(Number(campaign.created_at)), new Date())}</p>
+                <p>{formatDistance(new Date(Number(campaign.created_at)), new Date())} ago</p>
               </section>
             </section>
-          </article>
-        </div>
+          </div>
+        </article>
       )
     })
   }, areEqual)
@@ -163,6 +175,36 @@ export default () => {
             <RenderCampaigns campaigns={campaigns} />
           </section>
         </main>
+        {selectedCampaign && isModalOpen && (
+          <Modal
+            isOpen={isModalOpen}
+            onRequestClose={() => setModelOpen(false)}
+            // style={customStyles}
+            contentLabel='Campaign Info'>
+            <section>
+              <p className='text-md text-gray-600 font-semibold'>Campaign</p>
+              <p className='text-md text-gray-800'>
+                {formatRelative(new Date(Number(selectedCampaign.created_at)), new Date())}
+              </p>
+              <p className='text-sm text-gray-700'>
+                {formatDistance(new Date(Number(selectedCampaign.created_at)), new Date())} ago
+              </p>
+              {map(selectedCampaign.campaign_users, user => {
+                return (
+                  <div className='mt-2'>
+                    <Profile
+                      title={`@${user.screen_name}`}
+                      subtitle={user.name}
+                      description={user.description}
+                      image={user.profile_image_url_https}
+                    />
+                  </div>
+                )
+              })}
+              {/* <p className='text-md text-gray-700'>{format(new Date(Number(selectedCampaign.created_at)))}</p> */}
+            </section>
+          </Modal>
+        )}
       </Screen>
     </>
   )
