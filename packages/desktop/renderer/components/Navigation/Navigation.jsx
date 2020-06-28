@@ -33,7 +33,7 @@ const Navigation = props => {
   return (
     <>
       <header className='navigation border-b border-gray-200 z-50'>
-        <img onClick={() => goto('/index')} src={props.logoPath} />
+        <img className='w-8' onClick={() => goto('/index')} src={props.logoPath} />
         <nav>
           <Dropdown links={links} active={props.active} />
         </nav>
