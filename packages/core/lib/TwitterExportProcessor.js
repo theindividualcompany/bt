@@ -683,7 +683,8 @@ class TwitterExportProcessor {
   }
 
   async storeLocalAPICalls() {
-    return this.saveData(this.api_callsFile, 'api_calls', this.gatewayAPI.cleanApiCalls())
+    await this.saveData(this.api_callsFile, 'api_calls', this.gatewayAPI.cleanApiCalls())
+    return this.saveData(this.api_callsFile, 'api_calls_usage', this.gatewayAPI.getCurrentUsage())
   }
 
   async storeRankings(rankings) {
