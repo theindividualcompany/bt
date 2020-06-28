@@ -76,6 +76,16 @@ const getCampaigns = payload => {
   })
 }
 
+const exportEngagement = payload => {
+  return new Promise((resolve, reject) => {
+    window.ipc.once('export-engagement-response', (event, arg) => {
+      return arg instanceof Error ? reject(arg) : resolve(arg)
+    })
+
+    window.ipc.send('export-engagement-request')
+  })
+}
+
 export default {
   setLoginCredentials,
   logout,
@@ -86,4 +96,5 @@ export default {
   setIntegration,
   createCampaign,
   getCampaigns,
+  exportEngagement,
 }

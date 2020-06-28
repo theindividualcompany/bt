@@ -1,4 +1,4 @@
-const {ipcMain} = require('electron')
+const {ipcMain, dialog} = require('electron')
 const {set, get} = require('./config')
 const bt = require('@theindividualcompany/bt-core')
 
@@ -72,6 +72,28 @@ const prepare = (app, window) => {
     await set(`settings.integrations.${payload.name}`, payload.integration)
 
     event.sender.send('set-integration-response', true)
+  })
+
+  ipcMain.on('export-engagement-request', async (event, payload) => {
+    dialog
+      .showSaveDialog({defaultPath: `${app.getPath('downloads')}/rankings.csv`})
+      .then(async ({canceled, filePath}) => {
+        if (canceled || filePath == null) {
+          return event.sender.send('export-engagement-response', 'canceled')
+        }
+
+        try {
+          await window.bt.export_rankings_to_file(filePath)
+        } catch (error) {
+          console.log(error)
+          return event.sender.send('export-engagement-response', 'error')
+        }
+
+        return event.sender.send('export-engagement-response', filePath)
+      })
+      .catch(reason => {
+        return event.sender.send('export-engagement-response', 'error')
+      })
   })
 }
 

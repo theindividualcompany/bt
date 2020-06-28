@@ -94,6 +94,10 @@ export default () => {
     })
   }, areEqual)
 
+  const handleExport = async () => {
+    await ipc.exportEngagement()
+  }
+
   return (
     <>
       <Screen className=''>
@@ -119,7 +123,14 @@ export default () => {
                 This might take a few seconds...
               </div>
             ) : (
-              <RenderFollowers followers={followers} loading={loading} />
+              <>
+                <div className='flex justify-end'>
+                  <button className='p-2 bg-gray-100 text-sm uppercase' onClick={() => handleExport()}>
+                    export
+                  </button>
+                </div>
+                <RenderFollowers followers={followers} loading={loading} />
+              </>
             )}
           </section>
         </main>
