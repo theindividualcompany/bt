@@ -139,6 +139,9 @@ const core = (() => {
               console.log('error', reason)
             })
         },
+        export_rankings_to_file: filename => {
+          return scanner.exportRankingsCSVFile(filename)
+        }
       }
     },
   }
