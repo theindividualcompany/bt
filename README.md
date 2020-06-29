@@ -6,7 +6,7 @@ For MacOS you should find the data at:
 
 For Windows you should find the data at:
 
-C:\Users\<user>\AppData\Roaming\bt
+C:\Users\YOUR_USER\AppData\Roaming\bt
 
 ## How to build BT:
 
