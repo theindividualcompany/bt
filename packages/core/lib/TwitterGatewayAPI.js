@@ -381,7 +381,7 @@ class TwitterGatewayAPI{
     getError(error){
         if(_.isArray(error) && error.length > 0){
             let errObj = _.head(error);
-            if(!_.isUndefined(errObj.message) && errObj.code){return errObj}
+            if(!_.isUndefined(errObj.message) && !_.isUndefined(errObj.code)){return errObj}
         }
 
         return {code: -1, message: "UNKNOWN ERROR"};
