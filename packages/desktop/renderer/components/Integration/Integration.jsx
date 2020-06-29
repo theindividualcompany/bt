@@ -10,8 +10,6 @@ const Integration = ({name, integration, onSubmit, logoPath}) => {
         <img style={{height: '24px', width: '24px'}} src={logoPath} />
         <input
           className='flex-grow ml-8 pl-2 bg-gray-100 rounded-md'
-          required
-          autoFocus={true}
           placeholder='link'
           name='link'
           id='link'
@@ -21,7 +19,6 @@ const Integration = ({name, integration, onSubmit, logoPath}) => {
         <button
           className='py-2 px-2 bg-gray-400 rounded-md'
           onClick={() => {
-            setOpen(false)
             onSubmit({
               name,
               integration: {
