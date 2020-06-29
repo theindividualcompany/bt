@@ -405,11 +405,9 @@ class TwitterExportProcessor {
               }
             })
             .catch(function(err) {
-              if (!_.isUndefined(err[0].message) && !_.isUndefined(err[0].code)) {
-                log.info('API FAILURE: CODE:' + err.code + ' MESSAGE: ' + err.message)
-              } else {
-                log.error('catcherror', err)
-              }
+              let error = self.gatewayAPI.getError(err)
+              self.logErrorWarning(err, "RETWEETER API LOOKUP")
+
             }),
         )
       })
