@@ -74,6 +74,7 @@ export default () => {
         <label htmlFor='accessToken'>Access Token</label>
         <input
           required
+          type='password'
           placeholder='accessToken'
           name='accessToken'
           id='accessToken'
@@ -84,6 +85,7 @@ export default () => {
         <label htmlFor='accessTokenSecret'>Access Token Secret</label>
         <input
           required
+          type='password'
           placeholder='accessTokenSecret'
           name='accessTokenSecret'
           id='accessTokenSecret'
@@ -94,6 +96,7 @@ export default () => {
         <label htmlFor='consumerKey'>Consumer Key</label>
         <input
           required
+          type='password'
           placeholder='consumerKey'
           name='consumerKey'
           id='consumerKey'
@@ -104,6 +107,7 @@ export default () => {
         <label htmlFor='consumerSecret'>Consumer Secret</label>
         <input
           required
+          type='password'
           placeholder='consumerSecret'
           name='consumerSecret'
           id='consumerSecret'

@@ -15,6 +15,7 @@
   },
   "build": {
     "appId": "company.individual.bt",
+    "artifactName": "${productName}.${ext}",
     "files": [
       "**/*",
       "!renderer",
@@ -33,6 +34,9 @@
       "extendInfo": {
         "LSUIElement": 1
       }
+    },
+    "dmg": {
+      "title":"${productName}"
     }
   },
   "author": {
