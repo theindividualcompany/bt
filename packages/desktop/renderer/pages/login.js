@@ -54,7 +54,7 @@ export default () => {
   return (
     <article>
       <header>
-        <img src={assetPath} />
+        <img className='w-8 m-4' src={assetPath} />
       </header>
       {/* <p>Better Twitter</p> */}
 
@@ -120,10 +120,6 @@ export default () => {
         article {
           width: 100vw;
           height: 100vh;
-        }
-
-        header img {
-          width: 33%;
         }
 
         form {
