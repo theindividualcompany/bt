@@ -1,51 +1,39 @@
-import React, {useState, useEffect} from 'react'
-import classnames from 'classnames'
+import React, {useState} from 'react'
 
 const Integration = ({name, integration, onSubmit, logoPath}) => {
-  const [open, setOpen] = useState(false)
-
   const [link, setLink] = useState(integration.link)
 
   return (
-    <section className='integration relative'>
-      <button className='' onClick={() => setOpen(!open)}>
-        {integration.title}
+    <div className='mb-2 py-4'>
+      <p>{integration.title}</p>
+      <section className='integration relative flex flex-row justify-between'>
         <img style={{height: '24px', width: '24px'}} src={logoPath} />
-      </button>
-      {
-        <section
-          className={classnames({
-            'rounded-md border shadow-sm p-2 absolute z-50 bg-white': true,
-            hidden: !open,
-            block: open,
-          })}>
-          <label htmlFor='link'>Link</label>
-          <input
-            tabIndex={0}
-            required
-            autoFocus={true}
-            placeholder='link'
-            name='link'
-            id='link'
-            value={link}
-            onChange={event => setLink(event.target.value)}
-          />
-          <button
-            onClick={() => {
-              setOpen(false)
-              onSubmit({
-                name,
-                integration: {
-                  ...integration,
-                  link,
-                },
-              })
-            }}>
-            Save
-          </button>
-        </section>
-      }
-    </section>
+        <input
+          className='flex-grow ml-8 pl-2 bg-gray-100 rounded-md'
+          required
+          autoFocus={true}
+          placeholder='link'
+          name='link'
+          id='link'
+          value={link}
+          onChange={event => setLink(event.target.value)}
+        />
+        <button
+          className='py-2 px-2 bg-gray-400 rounded-md'
+          onClick={() => {
+            setOpen(false)
+            onSubmit({
+              name,
+              integration: {
+                ...integration,
+                link,
+              },
+            })
+          }}>
+          Save
+        </button>
+      </section>
+    </div>
   )
 }
 

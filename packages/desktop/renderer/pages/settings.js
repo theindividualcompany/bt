@@ -70,9 +70,7 @@ export default () => {
         <p className='text-lg font-semibold mb-4'>Settings</p>
         <section className=''>
           <p className='text-md text-gray-600 font-semibold'>Integrations</p>
-          <div className='h-16 flex flex-row justify-between bg-gray-100 border border-gray-400 rounded-md min-h-2 p-2'>
-            {settings.integrations && renderIntegrations(settings.integrations)}
-          </div>
+          {settings.integrations && renderIntegrations(settings.integrations)}
         </section>
       </main>
     </Screen>
