@@ -6,7 +6,8 @@
   "main": "main/index.js",
   "scripts": {
     "start": "electron .",
-    "build": "yarn build-renderer",
+    "build": "yarn build-styles && yarn build-renderer",
+    "build-styles": "npx tailwind build renderer/styles/index.css -o renderer/styles/dist.css",
     "build-electron": "electron-builder",
     "build-app": "electron-builder -mw",
     "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
