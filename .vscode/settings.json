@@ -14,6 +14,9 @@
 
   "search.exclude": {
     ".git": true,
+    "**/**/renderer/out": true,
+    "**/**/renderer/.next": true,
+    "**/**/main/dist": true,
     ".eslintcache": true,
     "app/dist": true,
     "app/main.prod.js": true,
@@ -22,8 +25,10 @@
     "dll": true,
     "release": true,
     "node_modules": true,
+    "**/**node_modules": true,
     "npm-debug.log.*": true,
     "test/**/__snapshots__": true,
+    "**/**/yarn.lock": true,
     "yarn.lock": true,
     "*.{css,sass,scss}.d.ts": true
   }

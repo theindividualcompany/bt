@@ -1,0 +1,6 @@
+.env
+node_modules
+.next
+packages/core/**/**/configs/*.json
+out
+dist

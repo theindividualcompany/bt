@@ -1,43 +1,44 @@
 {
-  "name": "@theindividualcompany/bt-core",
-  "version": "0.0.0",
-  "description": "bt",
+  "name": "@theindividualcompany/bt-desktop",
+  "version": "1.0.1-alpha.0",
+  "productName": "bt",
+  "description": "better twitter",
   "main": "main/index.js",
   "scripts": {
     "start": "electron .",
-    "build": "next build renderer && next export renderer",
-    "pack": "npm run build && build --dir",
-    "dist": "npm run build && build"
+    "build": "yarn build-styles && yarn build-renderer",
+    "build-styles": "npx tailwind build renderer/styles/index.css -o renderer/styles/dist.css",
+    "build-electron": "electron-builder",
+    "build-app": "electron-builder -mw",
+    "build-renderer": "cross-env NODE_ENV=production next build renderer && next export renderer",
+    "pack": "yarn build && yarn build-app --dir",
+    "dist": "yarn build && yarn build-app"
   },
   "build": {
     "appId": "company.individual.bt",
-    "asar": false,
+    "artifactName": "${productName}.${ext}",
+    "files": [
+      "**/*",
+      "!renderer",
+      "renderer/out"
+    ],
     "win": {
       "target": [
-        "squirrel"
+        "portable"
       ],
-      "icon": "main/static/icons/windows.ico"
-    },
-    "squirrelWindows": {
-      "loadingGif": "main/static/install-spinner.gif"
+      "icon": "main/static/icons/app-icon.png"
     },
     "mac": {
-      "category": "public.app-category.developer-tools",
+      "category": "public.app-category.utilities",
       "icon": "main/static/icons/mac.icns",
+      "darkModeSupport": false,
       "extendInfo": {
         "LSUIElement": 1
       }
     },
-    "files": [
-      "main",
-      "node_modules"
-    ],
-    "extraResources": [
-      {
-        "from": "renderer/out",
-        "to": "app/renderer"
-      }
-    ]
+    "dmg": {
+      "title": "${productName}"
+    }
   },
   "author": {
     "name": "Individual, Inc.",
@@ -45,15 +46,29 @@
   },
   "license": "GNU-3.0-only",
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^2.3.0",
+    "@tailwindcss/ui": "^0.3.0",
+    "cross-env": "^7.0.2",
     "electron": "^9.0.4",
+    "electron-builder": "^22.7.0",
+    "electron-builder-squirrel-windows": "^22.7.0",
     "next": "^9.4.4",
+    "postcss-preset-env": "^6.7.0",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "tailwindcss": "^1.4.6"
   },
   "dependencies": {
+    "@theindividualcompany/bt-core": "file:./../core",
     "app-root-path": "^3.0.0",
+    "classnames": "^2.2.6",
+    "date-fns": "^2.14.0",
+    "draft-js": "^0.11.6",
     "electron-is-dev": "^1.2.0",
     "electron-next": "^3.1.5",
-    "electron-store": "^5.2.0"
+    "electron-store": "^5.2.0",
+    "handlebars": "^4.7.6",
+    "lodash": "^4.17.19",
+    "react-modal": "^3.11.2"
   }
 }
