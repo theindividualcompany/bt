@@ -3,7 +3,7 @@ import Router from 'next/router'
 import find from 'lodash/find'
 import classnames from 'classnames'
 
-const Dropdown = ({active, links}) => {
+const Dropdown = ({active, links, logoPath}) => {
   const [open, setOpen] = useState(false)
   const [current, setCurrent] = useState(null)
 
@@ -13,6 +13,7 @@ const Dropdown = ({active, links}) => {
   }, [])
 
   const goto = href => {
+    setOpen(!open)
     return Router.replace(href)
   }
 
@@ -22,33 +23,36 @@ const Dropdown = ({active, links}) => {
 
   return (
     <section className='dropdown'>
-      <button className='' onClick={() => setOpen(!open)}>
-        {current.title}
+      <button className='text-primary' onClick={() => setOpen(!open)}>
+        <img className='w-8 inline' src={logoPath} />
+        <span className='pl-2'>&#9660;</span>
       </button>
       {
-        <section
+        <article
           className={classnames({
-            'dropdown-links rounded-md border shadow-sm p-2 z-50': true,
             hidden: !open,
-            block: open,
+            flex: open,
+            'w-full fixed left-0': true,
           })}>
-          {links.map(link => {
-            return (
-              <a
-                key={link.href}
-                onClick={() => {
-                  goto(link.href)
-                }}>
-                <p
-                  className={classnames({
-                    'bg-gray-400': link.href == active,
-                  })}>
-                  {link.title}
-                </p>
-              </a>
-            )
-          })}
-        </section>
+          <section className='bg-primary-lighter w-full mx-4 rounded-md border shadow-sm p-2 z-50'>
+            <div className='dropdown-links grid grid-cols-3 gap-2'>
+              {links.map(link => {
+                return (
+                  <a
+                    key={link.href}
+                    className={classnames({
+                      'px-6 pt-12 pb-2 rounded bg-primary text-white text-center cursor-pointer': true,
+                    })}
+                    onClick={() => {
+                      goto(link.href)
+                    }}>
+                    <p>{link.title}</p>
+                  </a>
+                )
+              })}
+            </div>
+          </section>
+        </article>
       }
       <style jsx>{`
         .dropdown {
@@ -64,11 +68,6 @@ const Dropdown = ({active, links}) => {
 
         .block {
           display: block;
-        }
-
-        .dropdown-links {
-          position: absolute;
-          background: white;
         }
       `}</style>
     </section>
