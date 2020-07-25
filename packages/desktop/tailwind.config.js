@@ -12,9 +12,9 @@ module.exports = {
       black: '#000',
       white: '#fff',
       primary: {
-        default: '#6261CC',
-        lighter: '#EDEDF9',
-        darker: '#000000',
+        default: '#625FD0',
+        lighter: '#181948',
+        darker: '#060726',
       },
       secondary: {
         default: '#10B5EA',
