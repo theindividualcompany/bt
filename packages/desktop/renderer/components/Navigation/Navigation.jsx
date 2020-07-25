@@ -1,6 +1,7 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import Router from 'next/router'
 import Dropdown from '../Dropdown'
+import find from 'lodash/find'
 
 const links = [
   {
@@ -30,13 +31,26 @@ const Navigation = props => {
     return Router.replace(href)
   }
 
+  const [current, setCurrent] = useState(() => {
+    const current = find(links, {href: props.active})
+    return current
+  })
+
+  useEffect(() => {
+    const current = find(links, {href: props.active})
+    setCurrent(current)
+  }, [props.active])
+
   return (
     <>
-      <header className='navigation border-b border-gray-200 z-50'>
-        <img className='w-8' onClick={() => goto('/index')} src={props.logoPath} />
+      <header className='navigation text-primary bg-primary-darker border-b border-gray-200 z-50'>
+        {/* <img className='w-8' onClick={() => goto('/index')} src={props.logoPath} /> */}
+        {/* <div className='flex-grow'></div> */}
+        {current && <p>{current.title}</p>}
         <nav>
-          <Dropdown links={links} active={props.active} />
+          <Dropdown logoPath={props.logoPath} links={links} active={props.active} />
         </nav>
+        {/* <div className='flex-grow'></div> */}
         <img
           onClick={() => goto('/settings')}
           className='profile-image rounded-full'
@@ -49,7 +63,6 @@ const Navigation = props => {
           top: 0;
           left: 0;
           height: 48px;
-          background: white;
           display: flex;
           justify-content: space-between;
           align-items: center;

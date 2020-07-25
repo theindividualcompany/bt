@@ -1,6 +1,5 @@
 import {useState, useEffect} from 'react'
 import Screen from '../components/Screen'
-import Navigation from '../components/Navigation'
 import Profile from '../components/Profile'
 import map from 'lodash/map'
 import debounce from 'lodash/throttle'
@@ -12,25 +11,8 @@ export default () => {
     return prevProps == nextProps ? false : true
   }
 
-  const [assetPath, setAssetPath] = useState('')
-  useEffect(() => {
-    const assetPath = window.location.href.includes('http')
-      ? '/logo.svg'
-      : `${window.appPath}/renderer/out/logo.svg`
-    setAssetPath(assetPath)
-  }, [])
-
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-
-  const [profile, setProfile] = useState({})
-
-  useEffect(() => {
-    ;(async () => {
-      let profile = await ipc.getProfile()
-      setProfile(profile)
-    })()
-  }, [])
 
   const [followers, setFollowers] = useState([])
   useEffect(() => {
@@ -101,7 +83,7 @@ export default () => {
   return (
     <>
       <Screen className=''>
-        <Navigation active='/followers' profile={profile} logoPath={assetPath} />
+        {/* <Navigation active='/followers' profile={profile} logoPath={assetPath} /> */}
         <main>
           <section className='p-4'>
             <div className='bg-gray-100 border border-gray-400 rounded-md min-h-2 p-2'>

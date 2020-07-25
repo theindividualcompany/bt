@@ -1,7 +1,6 @@
 import {useState, useEffect} from 'react'
 import Router from 'next/router'
 import Screen from '../components/Screen'
-import Navigation from '../components/Navigation'
 import NewCampaign from '../components/NewCampaign'
 import Profile from '../components/Profile'
 import throttle from 'lodash/throttle'
@@ -22,28 +21,12 @@ export default () => {
     return Router.replace(href)
   }
 
-  const [assetPath, setAssetPath] = useState('')
-  useEffect(() => {
-    const assetPath = window.location.href.includes('http')
-      ? '/logo.svg'
-      : `${window.appPath}/renderer/out/logo.svg`
-    setAssetPath(assetPath)
-  }, [])
-
   function areEqual(prevProps, nextProps) {
     return prevProps == nextProps ? false : true
   }
 
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
-
-  const [profile, setProfile] = useState({})
-  useEffect(() => {
-    ;(async () => {
-      let profile = await ipc.getProfile()
-      setProfile(profile)
-    })()
-  }, [])
 
   const [followers, setFollowers] = useState(null)
   const [campaigns, setCampaigns] = useState({})
@@ -150,7 +133,6 @@ export default () => {
   return (
     <>
       <Screen>
-        <Navigation active='/campaigns' profile={profile} logoPath={assetPath} />
         <main className=''>
           <section className='mt-2 px-4'>
             <div className='flex flex-col text-center content-center justify-center bg-red-100 p-4 min-h-16 w-full'>
