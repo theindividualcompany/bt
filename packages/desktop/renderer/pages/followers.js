@@ -48,7 +48,7 @@ export default () => {
   const RenderFollowers = React.memo(({followers, loading}) => {
     if (loading) {
       return (
-        <div className='flex flex-col text-center content-center justify-center bg-gray-100 top-0 left-0 h-64 w-full z-50'>
+        <div className='flex flex-col text-center content-center justify-center inset-0 text-white text-opacity-80 h-screen w-full z-50'>
           loading...
         </div>
       )
@@ -56,19 +56,19 @@ export default () => {
 
     return map(followers, (follower, index) => {
       return (
-        <div key={follower.id_str} className='mt-2 border-2 rounded-md'>
+        <div key={follower.id_str} className='mt-2'>
           <Profile
-            title={`Rank ${index + 1}: @${follower.screen_name}`}
+            title={` @${follower.screen_name}`}
             subtitle={follower.name}
             description={follower.description}
             image={follower.profile_image_url_https}>
             <p>
-              {follower.mention_count} mentions &bull; {follower.retweet_count} retweets |{' '}
-              <a
-                onClick={() => window.shell.openExternal(`https://twitter.com/@${follower.screen_name}`)}
+              {follower.mention_count} mentions &bull; {follower.retweet_count} retweets
+              {/* <a
+                onClick={() => window.shell.openExternal(`https://twitter.com/${follower.screen_name}`)}
                 className='cursor-pointer text-bold'>
-                Go to profile
-              </a>
+                | Go to profile
+              </a> */}
             </p>
           </Profile>
         </div>
@@ -82,35 +82,31 @@ export default () => {
 
   return (
     <>
-      <Screen className=''>
-        {/* <Navigation active='/followers' profile={profile} logoPath={assetPath} /> */}
-        <main>
-          <section className='p-4'>
-            <div className='bg-gray-100 border border-gray-400 rounded-md min-h-2 p-2'>
-              {processing ? (
-                <button disabled className='cursor-wait w-full py-2 px-2 bg-gray rounded-md cursor'>
-                  Building Engagement
-                </button>
-              ) : (
-                <button className='w-full py-2 px-2 bg-gray-400 rounded-md' onClick={handleScan}>
-                  Build Engagement
-                </button>
-              )}
+      <Screen>
+        <main className='bg-white bg-opacity-8 p-2'>
+          <header className='flex flex-col'>
+            <button
+              className='p-2 w-1/2 mx-auto bg-secondary bg-opacity-40 text-black rounded-md'
+              onClick={handleScan}>
+              Build Engagement
+            </button>
+            <div className='flex flex-row justify-between content-center px-2'>
+              <p className='self-end text-white text-center text-2xl font-black'>Followers</p>
+              <button
+                className='p-2 bg-transparent border border-primary text-primary rounded-md'
+                onClick={() => handleExport()}>
+                Export
+              </button>
             </div>
-          </section>
+          </header>
 
-          <section className='p-4'>
+          <section className=''>
             {processing ? (
-              <div className='absolute top-0 left-0 overflow-hidden flex flex-col text-center content-center justify-center bg-gray-100 top-0 left-0 h-screen w-full z-50'>
+              <div className='fixed inset-0 h-screen w-full z-50 overflow-hidden flex flex-col text-center content-center justify-center bg-primary text-white text-opacity-80'>
                 This might take a few seconds...
               </div>
             ) : (
               <>
-                <div className='flex justify-end'>
-                  <button className='p-2 bg-gray-100 text-sm uppercase' onClick={() => handleExport()}>
-                    export
-                  </button>
-                </div>
                 <RenderFollowers followers={followers} loading={loading} />
               </>
             )}

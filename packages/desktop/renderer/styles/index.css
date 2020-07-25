@@ -4,3 +4,8 @@
 /* purgecss end ignore */
 
 @tailwind utilities;
+
+html, body {
+  /* background-color: #060726; */
+  @apply bg-primary-darker overflow-x-hidden;
+}

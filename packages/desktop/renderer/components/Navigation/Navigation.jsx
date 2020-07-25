@@ -43,10 +43,9 @@ const Navigation = props => {
 
   return (
     <>
-      <header className='navigation text-primary bg-primary-darker border-b border-gray-200 z-50'>
-        {/* <img className='w-8' onClick={() => goto('/index')} src={props.logoPath} /> */}
-        {/* <div className='flex-grow'></div> */}
-        {current && <p>{current.title}</p>}
+      <header className='navigation text-primary bg-primary-darker z-50'>
+        {/* {current && <p>{current.title}</p>} */}
+        <div className='profile-image w-8'></div>
         <nav>
           <Dropdown logoPath={props.logoPath} links={links} active={props.active} />
         </nav>
