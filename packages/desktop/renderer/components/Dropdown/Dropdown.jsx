@@ -32,16 +32,16 @@ const Dropdown = ({active, links, logoPath}) => {
           className={classnames({
             hidden: !open,
             flex: open,
-            'w-full fixed left-0': true,
+            'w-full min-h-1/3 fixed left-0': true,
           })}>
-          <section className='bg-primary-lighter w-full mx-4 rounded-md border shadow-sm p-2 z-50'>
-            <div className='dropdown-links grid grid-cols-3 gap-2'>
+          <section className='bg-primary-lighter w-full mx-8 rounded-md shadow-sm p-2 z-50'>
+            <div className='dropdown-links grid grid-cols-2 xs:grid-cols-3 gap-2'>
               {links.map(link => {
                 return (
                   <a
                     key={link.href}
                     className={classnames({
-                      'px-6 pt-12 pb-2 rounded bg-primary text-white text-center cursor-pointer': true,
+                      'px-6 pt-12 pb-4 rounded bg-primary text-white text-center cursor-pointer': true,
                     })}
                     onClick={() => {
                       goto(link.href)

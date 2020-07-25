@@ -2,8 +2,8 @@ import React from 'react'
 
 const Screen = ({className, children}) => {
   return (
-    <article className={className}>
-      <div className='screen relative'>{children}</div>
+    <article className='screen relative pt-4 bg-primary-darker'>
+      {children}
       <style jsx>{`
         .screen {
           height: 100%;
