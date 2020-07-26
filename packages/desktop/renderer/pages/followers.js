@@ -91,7 +91,7 @@ export default () => {
               Build Engagement
             </button>
             <div className='flex flex-row justify-between content-center px-2'>
-              <p className='self-end text-white text-center text-2xl font-black'>Followers</p>
+              <p className='self-end text-white text-center text-2xl font-black'>Engagement</p>
               <button
                 className='p-2 bg-transparent border border-primary text-primary rounded-md'
                 onClick={() => handleExport()}>
