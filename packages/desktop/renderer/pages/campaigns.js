@@ -144,7 +144,7 @@ export default () => {
   return (
     <>
       <Screen>
-        <main className='bg-white bg-opacity-8 p-2 pt-6'>
+        <main className='max-w-screen-xl mx-auto bg-white bg-opacity-8 p-2 pt-6 rounded-lg'>
           <header className='flex flex-col'>
             {/* <button
               className='p-2 w-1/2 mx-auto bg-secondary bg-opacity-40 text-black rounded-md'
@@ -152,8 +152,8 @@ export default () => {
               Build Engagement
             </button> */}
             <div className='flex flex-row justify-between content-center px-2'>
-              <p className='self-end text-white text-center text-2xl font-black'>Campaigns</p>
-              <div className='text-center bg-secondary bg-opacity-40 text-white px-2 py-1.5 rounded-lg'>
+              <p className='self-end text-white text-center text-2xl lg:text-4xl font-black'>Campaigns</p>
+              <div className='self-end text-center bg-secondary bg-opacity-40 text-white px-2 py-1.5 rounded-lg'>
                 {integration ? (
                   <>
                     <p>Using {integration.title}</p>

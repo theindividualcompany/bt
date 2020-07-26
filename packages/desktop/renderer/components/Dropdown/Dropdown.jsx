@@ -32,10 +32,10 @@ const Dropdown = ({active, links, logoPath}) => {
           className={classnames({
             hidden: !open,
             flex: open,
-            'w-full min-h-1/3 fixed left-0': true,
+            'w-full min-h-1/3 fixed justify-center left-0': true,
           })}>
-          <section className='bg-primary-lighter w-full mx-8 rounded-md shadow-sm p-2 z-50'>
-            <div className='dropdown-links grid grid-cols-2 xs:grid-cols-3 gap-2'>
+          <section className='bg-primary-lighter w-full sm:w-3/4 lg:w-1/2 mx-8 rounded-md shadow-sm p-2 z-50'>
+            <div className='dropdown-links grid grid-cols-2 sm:grid-cols-3 gap-2'>
               {links.map(link => {
                 return (
                   <a

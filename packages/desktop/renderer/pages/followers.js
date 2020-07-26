@@ -83,7 +83,7 @@ export default () => {
   return (
     <>
       <Screen>
-        <main className='bg-white bg-opacity-8 p-2 pt-6'>
+        <main className='max-w-screen-xl mx-auto bg-white bg-opacity-8 p-2 pt-6 rounded-lg'>
           <header className='flex flex-col'>
             <button
               className='p-2 w-1/2 mx-auto bg-secondary bg-opacity-40 text-black rounded-md'
@@ -91,9 +91,9 @@ export default () => {
               Build Engagement
             </button>
             <div className='flex flex-row justify-between content-center px-2'>
-              <p className='self-end text-white text-center text-2xl font-black'>Engagement</p>
+              <p className='self-end text-white text-center text-2xl lg:text-4xl font-black'>Engagement</p>
               <button
-                className='p-2 bg-transparent border border-primary text-primary rounded-md'
+                className='self-end p-2 bg-transparent border border-primary text-primary rounded-md'
                 onClick={() => handleExport()}>
                 Export
               </button>

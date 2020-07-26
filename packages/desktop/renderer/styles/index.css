@@ -9,4 +9,10 @@ html, body {
   /* background-color: #060726; */
   @apply bg-primary-darker overflow-x-hidden;
   @apply text-white text-opacity-80;
+  height: 100vh;
+  width: 100vw;
+}
+
+.heroicon-ui {
+  fill: currentColor;
 }

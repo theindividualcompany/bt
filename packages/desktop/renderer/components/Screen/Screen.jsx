@@ -6,7 +6,7 @@ const Screen = ({className, children}) => {
       {children}
       <style jsx>{`
         .screen {
-          height: 100%;
+          height: 100vh;
           width: 100vw;
           position: relative;
         }
