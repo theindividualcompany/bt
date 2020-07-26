@@ -6,11 +6,11 @@ import find from 'lodash/find'
 const links = [
   {
     href: '/index',
-    title: 'Home',
+    title: 'For You',
   },
   {
     href: '/followers',
-    title: 'Followers',
+    title: 'Engagement',
   },
   {
     href: '/messages',
