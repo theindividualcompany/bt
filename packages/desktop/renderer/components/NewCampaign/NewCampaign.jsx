@@ -26,7 +26,8 @@ My human wants you to know they post content on {{integration.link}} and would l
   return (
     <>
       <section className='p-4'>
-        <div className='bg-gray-100 border border-gray-400 rounded-md min-h-2 p-2' onClick={focusEditor}>
+        <p className='text-md text-white text-opacity-80 font-semibold'>New Campaign</p>
+        <div className='bg-white bg-opacity-8 rounded-lg min-h-2 p-2' onClick={focusEditor}>
           <Editor
             ref={editor}
             key='campaign-editor'
@@ -36,7 +37,7 @@ My human wants you to know they post content on {{integration.link}} and would l
         </div>
         {props.enabled ? (
           <>
-            <div className='flex items-center'>
+            <div className='flex items-center mt-4'>
               <input
                 id='dry_run'
                 name='dryRun'
@@ -47,17 +48,17 @@ My human wants you to know they post content on {{integration.link}} and would l
                 }}
                 className='form-checkbox h-4 w-4 text-indigo-600 transition duration-150 ease-in-out'
               />
-              <label htmlFor='dry_run' className='ml-2 block text-sm leading-5 text-gray-900'>
+              <label htmlFor='dry_run' className='ml-2 block text-sm leading-5 text-white'>
                 Dry Run?
               </label>
             </div>
             <div className='mt-4 relative rounded-md shadow-sm'>
               <button
-                className='w-full py-2 px-2 bg-gray-400 rounded-md'
+                className='w-full py-2 px-2 bg-primary rounded-md'
                 onClick={() => prepareSend(editorState.getCurrentContent().getPlainText(), count, isDryRun)}>
                 Send
               </button>
-              <div className='absolute inset-y-0 right-0 flex items-center text-gray-500 sm:text-sm sm:leading-5'>
+              <div className='absolute inset-y-0 right-0 flex items-center text-white text-opacity-80 sm:text-sm sm:leading-5'>
                 Top
                 <select
                   aria-label='count'
@@ -65,7 +66,7 @@ My human wants you to know they post content on {{integration.link}} and would l
                   onChange={e => {
                     setCount(e.target.value)
                   }}
-                  className='form-select h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-gray-500 sm:text-sm sm:leading-5'>
+                  className='form-select h-full py-0 pl-2 pr-7 border-transparent bg-transparent text-white text-opacity-80 sm:text-sm sm:leading-5'>
                   <option value={10}>10</option>
                   <option value={20}>20</option>
                   <option value={30}>30</option>

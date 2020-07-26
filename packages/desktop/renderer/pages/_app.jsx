@@ -23,7 +23,7 @@ function App({Component, pageProps}) {
     return () => {
       Router.events.off('routeChangeComplete', handleRouteChange)
     }
-  }, [])
+  }, [route])
 
   const [profile, setProfile] = useState({})
 
