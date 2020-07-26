@@ -2,7 +2,7 @@ import React from 'react'
 
 const Screen = ({className, children}) => {
   return (
-    <article className='screen relative pt-4 bg-primary-darker'>
+    <article className='screen relative pt-4 bg-primary-darker max-w-screen-xl mx-auto'>
       {children}
       <style jsx>{`
         .screen {

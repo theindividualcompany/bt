@@ -45,16 +45,18 @@ const Navigation = props => {
     <>
       <header className='navigation text-primary bg-primary-darker z-50'>
         {/* {current && <p>{current.title}</p>} */}
-        <div className='profile-image w-8'></div>
+        <div className='h-8 w-8'></div>
         <nav>
           <Dropdown logoPath={props.logoPath} links={links} active={props.active} />
         </nav>
         {/* <div className='flex-grow'></div> */}
-        <img
-          onClick={() => goto('/settings')}
-          className='profile-image rounded-full'
-          src={props.profile.profile_image_url_https}
-        />
+        <div>
+          <img
+            onClick={() => goto('/settings')}
+            className='w-8 h-8 rounded-full'
+            src={props.profile.profile_image_url_https}
+          />
+        </div>
       </header>
       <style jsx>{`
         .navigation {
@@ -74,13 +76,6 @@ const Navigation = props => {
 
         img {
           cursor: pointer;
-        }
-
-        .profile-image {
-          height: 80%;
-        }
-
-        header {
         }
       `}</style>
     </>

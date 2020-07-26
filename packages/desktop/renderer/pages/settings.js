@@ -48,8 +48,8 @@ export default () => {
 
   return (
     <Screen>
-      <main className='bg-white bg-opacity-8 p-2 pt-6'>
-        <p className='text-lg font-semibold mb-4'>Settings</p>
+      <main className='bg-white bg-opacity-8 p-2 pt-6 rounded-lg'>
+        <p className='self-end text-white text-center text-2xl lg:text-4xl font-black'>Settings</p>
         <section className=''>
           <p className='text-md text-gray-600 font-semibold'>Integrations</p>
           {settings.integrations && renderIntegrations(settings.integrations)}
