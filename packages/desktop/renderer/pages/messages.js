@@ -4,7 +4,7 @@ export default () => {
   return (
     <Screen>
       {/* h-64  bg-gray-100 border border-gray-400 rounded-md p-4 flex flex-col content-center justify-center */}
-      <main className='bg-white bg-opacity-8 p-2 pt-6'>
+      <main className='bg-white bg-opacity-8 p-2 pt-6 rounded-lg'>
         <p className='text-center'>Messages Coming Soon</p>
         <p className='text-sm text-gray-600 mt-4'>
           We're waiting for access to the Twitter Activity API to thoroughly deliver better twitter DM
