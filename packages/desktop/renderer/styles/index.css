@@ -10,3 +10,7 @@ html, body {
   @apply bg-primary-darker overflow-x-hidden;
   @apply text-white text-opacity-80;
 }
+
+.heroicon-ui {
+  fill: currentColor;
+}
