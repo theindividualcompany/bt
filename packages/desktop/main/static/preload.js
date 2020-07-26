@@ -1,5 +1,9 @@
 const electron = require('electron')
+const {resolve: resolvePath} = require('app-root-path')
+const isDev = require('electron-is-dev')
 
+window.isDev = isDev
+window.resolvePath = resolvePath
 window.ipc = electron.ipcRenderer
 window.shell = electron.shell
 
