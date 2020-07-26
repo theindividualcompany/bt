@@ -8,4 +8,5 @@
 html, body {
   /* background-color: #060726; */
   @apply bg-primary-darker overflow-x-hidden;
+  @apply text-white text-opacity-80;
 }

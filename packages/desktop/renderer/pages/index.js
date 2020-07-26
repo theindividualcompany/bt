@@ -1,32 +1,21 @@
-import {useState, useEffect} from 'react'
 import Screen from '../components/Screen'
-import Navigation from '../components/Navigation'
-
-import ipc from '../utils/ipc'
 
 export default () => {
-  // const [profile, setProfile] = useState({})
-
-  // const [assetPath, setAssetPath] = useState('')
-  // useEffect(() => {
-  //   const assetPath = window.location.href.includes('http')
-  //     ? '/logo.svg'
-  //     : `${window.appPath}/renderer/out/logo.svg`
-  //   setAssetPath(assetPath)
-  // }, [])
-
-  // useEffect(() => {
-  //   ;(async () => {
-  //     let profile = await ipc.getProfile()
-  //     setProfile(profile)
-  //   })()
-  // }, [])
-
   return (
     <Screen>
-      {/* <Navigation active='/index' profile={profile} logoPath={assetPath} /> */}
-      <main className='h-64 text-center bg-gray-100 border border-gray-400 rounded-md p-2 flex flex-col content-center justify-center'>
-        <p>bt: better twitter coming soon</p>
+      <main className='bg-white bg-opacity-8 p-2 pt-6'>
+        <header className='flex flex-col'>
+          <div className='flex flex-row justify-between content-center px-2'>
+            <p className='self-end text-white text-center text-2xl font-black'>For You</p>
+
+            <div className='self-end flex text-center text-base font-black'>
+              <p className='pl-2 text-primary'>fresh</p>
+              <p className='pl-2 text-white text-opacity-20'>hot</p>
+              <p className='pl-2 text-white text-opacity-20'>rising</p>
+            </div>
+          </div>
+        </header>
+        <p className='mt-20 text-center'>feed coming soon</p>
       </main>
     </Screen>
   )

@@ -83,7 +83,7 @@ export default () => {
   return (
     <>
       <Screen>
-        <main className='bg-white bg-opacity-8 p-2'>
+        <main className='bg-white bg-opacity-8 p-2 pt-6'>
           <header className='flex flex-col'>
             <button
               className='p-2 w-1/2 mx-auto bg-secondary bg-opacity-40 text-black rounded-md'

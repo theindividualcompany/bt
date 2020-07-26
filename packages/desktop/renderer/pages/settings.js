@@ -48,7 +48,7 @@ export default () => {
 
   return (
     <Screen>
-      <main className='p-4'>
+      <main className='bg-white bg-opacity-8 p-2 pt-6'>
         <p className='text-lg font-semibold mb-4'>Settings</p>
         <section className=''>
           <p className='text-md text-gray-600 font-semibold'>Integrations</p>

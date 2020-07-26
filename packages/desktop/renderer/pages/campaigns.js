@@ -16,6 +16,17 @@ import ipc from '../utils/ipc'
 
 Modal.setAppElement('#__next')
 
+const modalStyle = {
+  content: {
+    border: 'none',
+    background: '#060726',
+  },
+  overlay: {
+    // background: '#060726',
+    background: 'rgba(108,106,210,0.6)',
+  },
+}
+
 export default () => {
   const goto = href => {
     return Router.replace(href)
@@ -85,7 +96,7 @@ export default () => {
   const RenderCampaigns = React.memo(({campaigns}) => {
     if (keys(campaigns).length == 0) {
       return (
-        <div className='flex flex-col text-center content-center justify-center bg-gray-100 h-16 w-full'>
+        <div className='flex flex-col text-center content-center justify-center h-16 w-full'>
           Run your first campaign
         </div>
       )
@@ -97,9 +108,9 @@ export default () => {
       return (
         <article
           key={key}
-          className='mt-2 border-2 rounded-md cursor-pointer'
+          className='mt-2 text-white text-opacity-80 hover:bg-white hover:bg-opacity-8 cursor-pointer'
           onClick={() => openCampaignInfo(campaign)}>
-          <div className='w-full py-2 px-4 bg-gray-100 rounded-md'>
+          <div className='w-full py-2'>
             <section className='profile flex flex-row justify-between content-center'>
               <section className='flex flex-col w-2/3'>
                 {campaign.dry_run && <p>dry run</p>}
@@ -133,26 +144,35 @@ export default () => {
   return (
     <>
       <Screen>
-        <main className=''>
-          <section className='mt-2 px-4'>
-            <div className='flex flex-col text-center content-center justify-center bg-red-100 p-4 min-h-16 w-full'>
-              {integration ? (
-                <>
-                  <p>Using {integration.title}</p>
-                </>
-              ) : (
-                <a
-                  className='cursor-pointer'
-                  onClick={() => {
-                    goto('/settings')
-                  }}>
-                  No integration set. Click here to set integration before sending campaigns.
-                </a>
-              )}
+        <main className='bg-white bg-opacity-8 p-2 pt-6'>
+          <header className='flex flex-col'>
+            {/* <button
+              className='p-2 w-1/2 mx-auto bg-secondary bg-opacity-40 text-black rounded-md'
+              onClick={handleScan}>
+              Build Engagement
+            </button> */}
+            <div className='flex flex-row justify-between content-center px-2'>
+              <p className='self-end text-white text-center text-2xl font-black'>Campaigns</p>
+              <div className='text-center bg-secondary bg-opacity-40 text-white px-2 py-1.5 rounded-lg'>
+                {integration ? (
+                  <>
+                    <p>Using {integration.title}</p>
+                  </>
+                ) : (
+                  <a
+                    className='cursor-pointer'
+                    onClick={() => {
+                      goto('/settings')
+                    }}>
+                    No integration set. Click here to set integration before sending campaigns.
+                  </a>
+                )}
+              </div>
             </div>
-          </section>
+          </header>
+
           {processing ? (
-            <div className='absolute top-0 left-0 overflow-hidden flex flex-col text-center content-center justify-center bg-gray-100 top-0 left-0 h-screen w-full z-50'>
+            <div className='fixed inset-0 h-screen w-full z-50 overflow-hidden flex flex-col text-center content-center justify-center bg-primary text-white text-opacity-80'>
               <p>Send messages</p>
               <p>This might take a few seconds...</p>
             </div>
@@ -160,18 +180,22 @@ export default () => {
             renderNewCampaign(followers, integration)
           )}
           <section className='mt-2 px-4'>
-            <p className='text-md text-gray-600 font-semibold'>Previous Campaigns</p>
+            <p className='text-md text-white text-opacity-80 font-semibold'>Previous Campaigns</p>
             <RenderCampaigns campaigns={campaigns} />
           </section>
         </main>
         {selectedCampaign && isModalOpen && (
-          <Modal isOpen={isModalOpen} onRequestClose={() => setModelOpen(false)} contentLabel='Campaign Info'>
-            <section>
-              <p className='text-md text-gray-600 font-semibold'>Campaign</p>
-              <p className='text-md text-gray-800'>
+          <Modal
+            isOpen={isModalOpen}
+            onRequestClose={() => setModelOpen(false)}
+            contentLabel='Campaign Info'
+            style={modalStyle}>
+            <section className='bg-primary-darker'>
+              <p className='text-md text-white text-opacity-80 font-semibold'>Campaign</p>
+              <p className='text-md text-white text-opacity-80'>
                 {formatRelative(new Date(Number(selectedCampaign.created_at)), new Date())}
               </p>
-              <p className='text-sm text-gray-700'>
+              <p className='text-sm text-white text-opacity-80'>
                 {formatDistance(new Date(Number(selectedCampaign.created_at)), new Date())} ago
               </p>
               {map(selectedCampaign.campaign_users, user => {
