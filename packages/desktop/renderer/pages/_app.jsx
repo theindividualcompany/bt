@@ -6,7 +6,7 @@ if (process.env.NODE_ENV === 'development') {
 
 import {useState, useEffect} from 'react'
 import Navigation from '../components/Navigation'
-import Router, {useRouter} from 'next/router'
+import {useRouter} from 'next/router'
 
 import ipc from '../utils/ipc'
 
@@ -15,15 +15,8 @@ function App({Component, pageProps}) {
   const [route, setRoute] = useState(router.pathname)
 
   useEffect(() => {
-    const handleRouteChange = url => {
-      setRoute(url)
-    }
-
-    Router.events.on('routeChangeComplete', handleRouteChange)
-    return () => {
-      Router.events.off('routeChangeComplete', handleRouteChange)
-    }
-  }, [route])
+    setRoute(router.pathname)
+  }, [router.pathname])
 
   const [profile, setProfile] = useState({})
 

@@ -5,7 +5,7 @@ import find from 'lodash/find'
 
 const links = [
   {
-    href: '/index',
+    href: '/',
     title: 'For You',
   },
   {
