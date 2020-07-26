@@ -4,12 +4,12 @@ const Integration = ({name, integration, onSubmit, logoPath}) => {
   const [link, setLink] = useState(integration.link)
 
   return (
-    <div className='mb-2 py-4'>
+    <div className='mb-2 py-4 rounded'>
       <p>{integration.title}</p>
       <section className='integration relative flex flex-row justify-between'>
         <img style={{height: '24px', width: '24px'}} src={logoPath} />
         <input
-          className='flex-grow ml-8 pl-2 bg-gray-100 rounded-md'
+          className='flex-grow ml-8 pl-2 bg-primary-darker text-white rounded-md'
           placeholder='link'
           name='link'
           id='link'
@@ -17,7 +17,7 @@ const Integration = ({name, integration, onSubmit, logoPath}) => {
           onChange={event => setLink(event.target.value)}
         />
         <button
-          className='py-2 px-2 bg-gray-400 rounded-md'
+          className='py-2 px-2 bg-primary-darker text-white rounded-md'
           onClick={() => {
             onSubmit({
               name,
