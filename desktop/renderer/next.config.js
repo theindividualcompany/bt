@@ -16,9 +16,7 @@ module.exports = {
 
     return config
   },
-  // exportPathMap() {
-  //   return {
-  //     '/start': { page: '/start' },
-  //   }
-  // }
+  devIndicators: {
+    autoPrerender: false,
+  },
 }
