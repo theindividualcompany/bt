@@ -14,4 +14,14 @@ async function tweet(client, args) {
     .catch(reason => reason)
 }
 
-module.exports = tweet
+exports.tweet = tweet
+
+async function _delete(client, id) {
+  const payload = Resources['tweet.destroy'].payload(id)
+  return client
+    .post(`${Resources['tweet.destroy'].url}/${id}`, payload)
+    .then(res => res)
+    .catch(reason => reason)
+}
+
+exports.delete = _delete

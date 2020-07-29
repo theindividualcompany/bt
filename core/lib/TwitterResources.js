@@ -70,6 +70,15 @@ const Resources = {
       return payload
     },
   },
+  'tweet.destroy': {
+    url: 'statuses/destroy',
+    payload: id => {
+      return {
+        id,
+        trim_user: true,
+      }
+    },
+  },
   'profile.get': {
     url: 'users/show',
     payload: args => {

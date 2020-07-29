@@ -92,10 +92,25 @@ const core = (() => {
             mentions = [mentions]
           }
 
-          return tweet(getClient(), {
-            text,
-            mentions,
-          })
+          return tweet
+            .tweet(getClient(), {
+              text,
+              mentions,
+            })
+            .then(res => {
+              return res
+            })
+            .catch(reason => {
+              console.log(reason)
+            })
+        },
+        delete_tweet: id => {
+          if (!getClient()) {
+            console.log('Please configure Twitter Client')
+            return
+          }
+          return tweet
+            .delete(getClient(), id)
             .then(res => {
               return res
             })
