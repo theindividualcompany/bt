@@ -1,6 +1,7 @@
 .env
 node_modules
 .next
-packages/core/**/**/configs/*.json
+core/**/**/configs/*.json
+core/__tests__/main.js
 out
 dist
