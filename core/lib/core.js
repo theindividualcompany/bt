@@ -157,6 +157,13 @@ const core = (() => {
         export_rankings_to_file: filename => {
           return scanner.exportRankingsCSVFile(filename)
         },
+        start_scheduled_batches(minutes_between_batches, params) {
+          let seconds = minutes_between_batches * 60 * 1000
+          return scanner.simpleScheduledBatchRun(seconds, params)
+        },
+        stop_scheduled_batches() {
+          scanner.disableScheduledBatchRuns()
+        },
       }
     },
   }

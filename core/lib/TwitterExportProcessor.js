@@ -2,13 +2,14 @@ const logger = require('pino')({prettyPrint: true})
 const log = require('loglevel')
 // Load the full build.
 const _ = require('lodash')
-const Twitter = require('twitter')
 const Conf = require('conf')
 const GatewayAPI = require('./TwitterGatewayAPI')
 var jsonexport = require('jsonexport')
 var fs = require('fs')
 
 class TwitterExportProcessor {
+  scheduledBatchRunsEnabled = false
+
   tweetsFile
   usersFile
   configFile
@@ -78,6 +79,33 @@ class TwitterExportProcessor {
   fullTimeline = 800
   numCheckRetweets = 25
   fullMentionsLookback = 800
+
+  //seconds_between_batches: seconds between a scan and campaign batch
+  //params: see getNewCampaign PARAMS
+  async simpleScheduledBatchRun(seconds_between_batches, params) {
+    this.scheduledBatchRunsEnabled = true
+
+    while (this.scheduledBatchRunsEnabled === true) {
+      console.log('Scanning...')
+      await this.scan()
+      console.log('Running Campaign...')
+      await this.runCampaign(params)
+
+      console.log('Waiting ' + seconds_between_batches / 1000 / 60 + ' minutes between batch...')
+      await this.asyncBatchDelay(seconds_between_batches)
+    }
+    console.log('Scheduled Batches Completed.')
+  }
+
+  disableScheduledBatchRuns() {
+    this.scheduledBatchRunsEnabled = false
+  }
+
+  asyncBatchDelay(timeout) {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(true), timeout)
+    })
+  }
 
   async scan(tweetLookback, retweets, mentionsLookback) {
     if (_.isUndefined(tweetLookback)) {
