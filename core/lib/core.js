@@ -11,7 +11,7 @@ const verify_credentials = require('./verify_credentials')
 const core = (() => {
   let client
   let scanner
-
+  let automatedScanCampaignPromise = null
   const getClient = opts => {
     if (client) {
       return client
@@ -159,10 +159,15 @@ const core = (() => {
         },
         start_scheduled_batches(minutes_between_batches, params) {
           let seconds = minutes_between_batches * 60 * 1000
-          return scanner.simpleScheduledBatchRun(seconds, params)
+          if (scanner.scheduledBatchRunning === false) {
+            automatedScanCampaignPromise = scanner.simpleScheduledBatchRun(seconds, params)
+          }
         },
         stop_scheduled_batches() {
           scanner.disableScheduledBatchRuns()
+        },
+        get_automated_status_promise() {
+          return automatedScanCampaignPromise === null ? Promise.resolve(true) : automatedScanCampaignPromise
         },
       }
     },
