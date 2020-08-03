@@ -5,6 +5,7 @@
   "description": "better twitter",
   "main": "main/index.js",
   "scripts": {
+    "dev": "electron .",
     "start": "electron .",
     "build": "yarn build-styles && yarn build-renderer",
     "build-styles": "npx tailwind build renderer/styles/index.css -o renderer/styles/dist.css",
