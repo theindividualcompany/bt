@@ -47,6 +47,17 @@ class TwitterGatewayAPI {
       return {id: '-3', err_msg: 'need text'}
     }
 
+    let currUsage = this.getCurrentUsage()
+    if (this.SendDMURL in currUsage) {
+      let dm_stats = currUsage[this.SendDMURL]
+      if (dm_stats['ratelimit'] <= dm_stats['calls']) {
+        return {
+          id: '-4',
+          err_msg: 'Exceeded ratelimit, ' + dm_stats['calls'] + ' calls within the last 24 hours.',
+        }
+      }
+    }
+
     this.logAPICall(this.SendDMURL)
     if (dry_run) {
       logger.info(`DRY RUN: Sending DM "${args.text}" to ${args.recipient_id}`)

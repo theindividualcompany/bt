@@ -2,13 +2,15 @@ const logger = require('pino')({prettyPrint: true})
 const log = require('loglevel')
 // Load the full build.
 const _ = require('lodash')
-const Twitter = require('twitter')
 const Conf = require('conf')
 const GatewayAPI = require('./TwitterGatewayAPI')
 var jsonexport = require('jsonexport')
 var fs = require('fs')
 
 class TwitterExportProcessor {
+  scheduledBatchRunsEnabled = false
+  scheduledBatchRunning = false
+
   tweetsFile
   usersFile
   configFile
@@ -78,6 +80,44 @@ class TwitterExportProcessor {
   fullTimeline = 800
   numCheckRetweets = 25
   fullMentionsLookback = 800
+
+  //seconds_between_batches: seconds between a scan and campaign batch
+  //params: see getNewCampaign PARAMS
+  async simpleScheduledBatchRun(seconds_between_batches, params) {
+    if (this.scheduledBatchRunning === false) {
+      this.scheduledBatchRunsEnabled = true
+      this.scheduledBatchRunning = true
+      while (this.scheduledBatchRunsEnabled === true) {
+        try {
+          console.log('Scanning...')
+          await this.scan()
+          console.log('Running Campaign...')
+          await this.runCampaign(params)
+
+          console.log('Waiting ' + seconds_between_batches / 1000 / 60 + ' minutes between batch...')
+          await this.asyncBatchDelay(seconds_between_batches)
+        } catch (err) {
+          console.log(err)
+          console.log('Error triggered, ending automation')
+          this.scheduledBatchRunsEnabled = false
+        }
+      }
+      this.scheduledBatchRunning = false
+      console.log('Scheduled Batches Completed.')
+    } else {
+      console.log('Cannot run more than one simpleScheduledBatchRun.')
+    }
+  }
+
+  disableScheduledBatchRuns() {
+    this.scheduledBatchRunsEnabled = false
+  }
+
+  asyncBatchDelay(timeout) {
+    return new Promise(resolve => {
+      setTimeout(() => resolve(true), timeout)
+    })
+  }
 
   async scan(tweetLookback, retweets, mentionsLookback) {
     if (_.isUndefined(tweetLookback)) {
@@ -211,7 +251,7 @@ class TwitterExportProcessor {
     while (c_users.length > 0) {
       let user = _.head(c_users)
       let args = {recipient_id: user.id_str, text: params.message}
-      logger.info(`Sending DM "${args.text}" to ${user.screen_name}`)
+      // logger.info(`Sending DM "${args.text}" to ${user.screen_name}`)
       let result = await this.gatewayAPI.sendDM(args, params.dry_run)
 
       let messageInfo = {
@@ -222,7 +262,11 @@ class TwitterExportProcessor {
         dry_run: params.dry_run,
       }
 
-      arr.push(messageInfo)
+      if (result['id'] !== '-4') {
+        arr.push(messageInfo)
+      } else {
+        console.log(result['err_msg'])
+      }
       c_users.shift()
     }
 
