@@ -69,7 +69,7 @@
     "electron-next": "^3.1.5",
     "electron-store": "^5.2.0",
     "handlebars": "^4.7.6",
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
     "react-modal": "^3.11.2"
   }
 }
